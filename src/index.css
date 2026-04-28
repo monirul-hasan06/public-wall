@@ -60,6 +60,29 @@
     --sidebar-border: 240 6% 16%;
     --sidebar-ring: 35 85% 60%;
   }
+
+  .light {
+    --background: 35 30% 92%;
+    --foreground: 20 30% 15%;
+    --card: 40 40% 96%;
+    --card-foreground: 20 30% 15%;
+    --popover: 40 40% 96%;
+    --popover-foreground: 20 30% 15%;
+    --primary: 15 70% 40%;
+    --primary-foreground: 48 60% 96%;
+    --primary-glow: 15 80% 55%;
+    --secondary: 35 25% 85%;
+    --secondary-foreground: 20 30% 15%;
+    --muted: 35 20% 88%;
+    --muted-foreground: 20 15% 35%;
+    --accent: 280 50% 50%;
+    --accent-foreground: 48 60% 96%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 20% 75%;
+    --input: 35 20% 88%;
+    --ring: 15 70% 40%;
+  }
 }
 
 @layer base {
@@ -75,6 +98,13 @@
       repeating-linear-gradient(90deg, hsl(15 35% 24% / 0.5) 0px, hsl(15 35% 24% / 0.5) 100px, hsl(20 15% 10%) 100px, hsl(20 15% 10%) 104px);
     background-attachment: fixed;
     min-height: 100vh;
+  }
+
+  html.light body {
+    background-color: hsl(30 25% 70%);
+    background-image:
+      repeating-linear-gradient(0deg, hsl(25 40% 65%) 0px, hsl(25 40% 65%) 50px, hsl(30 20% 55%) 50px, hsl(30 20% 55%) 54px),
+      repeating-linear-gradient(90deg, hsl(25 40% 68% / 0.5) 0px, hsl(25 40% 68% / 0.5) 100px, hsl(30 20% 55%) 100px, hsl(30 20% 55%) 104px);
   }
 
   ::selection {

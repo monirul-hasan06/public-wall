@@ -40,7 +40,7 @@ export default function Auth() {
       setLoading(false);
       if (error) return toast.error(error.message);
       toast.success("Welcome back, admin");
-      navigate("/");
+      navigate("/admin");
     }
   };
 
@@ -54,9 +54,14 @@ export default function Auth() {
           <Shield className="h-5 w-5 text-primary" />
           <h1 className="text-2xl font-semibold">Admin Access</h1>
         </div>
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="text-sm text-muted-foreground mb-4">
           {mode === "signin" ? "Sign in to moderate the wall." : "Create your admin account."}
         </p>
+        <div className="mb-6 rounded-md bg-muted/40 border border-border p-3 text-xs text-muted-foreground">
+          <div className="font-semibold text-foreground mb-1">ডিফল্ট অ্যাডমিন</div>
+          <div>Email: <span className="font-mono">monirul.hasan513@gmail.com</span></div>
+          <div>Password: <span className="font-mono">admin_pass06</span></div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
