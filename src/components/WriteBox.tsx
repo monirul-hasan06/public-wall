@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Send } from "lucide-react";
 
 const MAX = 1000;
 
@@ -14,11 +13,11 @@ export function WriteBox({ onPosted }: { onPosted: () => void }) {
   const handleSubmit = async () => {
     const trimmed = content.trim();
     if (!trimmed) {
-      toast.error("Write something before posting");
+      toast.error("কিছু লিখে তবেই পেস্ট করুন");
       return;
     }
     if (trimmed.length > MAX) {
-      toast.error(`Message too long (max ${MAX} characters)`);
+      toast.error(`বেশি বড় হয়ে গেছে (সর্বোচ্চ ${MAX} অক্ষর)`);
       return;
     }
 
@@ -27,35 +26,36 @@ export function WriteBox({ onPosted }: { onPosted: () => void }) {
     setSubmitting(false);
 
     if (error) {
-      toast.error("Could not post. Please try again.");
+      toast.error("পেস্ট করা গেল না, আবার চেষ্টা করুন");
       return;
     }
     setContent("");
-    toast.success("Posted to the wall");
+    toast.success("দেয়ালে আঁটানো হলো");
     onPosted();
   };
 
   return (
-    <div className="card-glass rounded-2xl p-5 shadow-[var(--shadow-elegant)] animate-fade-in">
+    <div className="relative poster rounded-sm p-6 pt-8 animate-fade-in" style={{ transform: "rotate(-0.6deg)" }}>
+      <span className="tape tape-tl" />
+      <span className="tape tape-tr" />
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Write something on the wall..."
+        placeholder="দেয়ালে কিছু লিখুন..."
         rows={3}
         maxLength={MAX}
-        className="resize-none border-0 bg-transparent text-base focus-visible:ring-0 placeholder:text-muted-foreground/60"
+        className="resize-none border-0 bg-transparent text-base text-[hsl(20_30%_15%)] placeholder:text-[hsl(20_25%_35%)]/60 focus-visible:ring-0 font-medium"
       />
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground tabular-nums">
+        <span className="text-xs text-[hsl(20_25%_30%)] tabular-nums">
           {content.length}/{MAX}
         </span>
         <Button
           onClick={handleSubmit}
           disabled={submitting || !content.trim()}
-          className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity"
+          className="bg-[hsl(15_70%_35%)] text-[hsl(48_60%_92%)] hover:bg-[hsl(15_75%_30%)] font-semibold tracking-wide"
         >
-          <Send className="mr-2 h-4 w-4" />
-          {submitting ? "Posting..." : "Post"}
+          {submitting ? "পেস্ট হচ্ছে..." : "পেস্ট"}
         </Button>
       </div>
     </div>
