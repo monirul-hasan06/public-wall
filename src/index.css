@@ -35,9 +35,14 @@
 
     --radius: 0.875rem;
 
-    --gradient-bg: radial-gradient(ellipse at top, hsl(35 60% 12% / 0.6), transparent 60%),
-                   radial-gradient(ellipse at bottom right, hsl(280 50% 14% / 0.5), transparent 60%),
-                   linear-gradient(180deg, hsl(240 12% 5%), hsl(240 10% 3%));
+    --gradient-bg: linear-gradient(180deg, hsl(25 25% 12%), hsl(20 20% 8%));
+    --wall-brick: hsl(15 35% 22%);
+    --wall-mortar: hsl(20 15% 10%);
+    --paper-1: 48 60% 92%;
+    --paper-2: 45 50% 88%;
+    --paper-3: 30 40% 85%;
+    --paper-4: 55 55% 90%;
+    --tape: 50 80% 75%;
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     --gradient-card: linear-gradient(180deg, hsl(240 8% 9% / 0.8), hsl(240 8% 6% / 0.6));
 
