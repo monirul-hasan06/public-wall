@@ -135,8 +135,11 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) fetchPage(page);
-  }, [page, fetchPage, isAdmin]);
+    if (isAdmin) {
+      fetchPage(page);
+      fetchNotifs();
+    }
+  }, [page, fetchPage, fetchNotifs, isAdmin]);
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
