@@ -141,9 +141,9 @@ const Index = () => {
               href="https://www.facebook.com/share/g/1ChcTjRzFZ/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[hsl(48_60%_92%)]/90 hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 text-blue-500 hover:text-blue-400 font-semibold underline-offset-4 hover:underline transition-colors"
             >
-              <Users className="h-3.5 w-3.5" /> Deyal Likhon — Facebook Community
+              <Users className="h-3.5 w-3.5" /> Join Deyal Likhon — Facebook Community
             </a>
           </div>
           <div>
