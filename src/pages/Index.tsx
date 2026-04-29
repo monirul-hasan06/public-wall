@@ -6,6 +6,7 @@ import { WriteBox } from "@/components/WriteBox";
 import { PostCard, type Post } from "@/components/PostCard";
 import { WallPagination } from "@/components/WallPagination";
 import { FloatingControls } from "@/components/FloatingControls";
+import { NotificationBanner } from "@/components/NotificationBanner";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users } from "lucide-react";
@@ -100,6 +101,8 @@ const Index = () => {
             </div>
           )}
         </header>
+
+        <NotificationBanner />
 
         <section className="mb-10">
           <WriteBox onPosted={handlePosted} />
