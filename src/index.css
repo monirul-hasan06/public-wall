@@ -92,10 +92,15 @@
 
   body {
     @apply text-foreground;
-    background-color: hsl(20 20% 10%);
+    background-color: hsl(20 18% 6%);
     background-image:
-      repeating-linear-gradient(0deg, hsl(15 35% 22%) 0px, hsl(15 35% 22%) 50px, hsl(20 15% 10%) 50px, hsl(20 15% 10%) 54px),
-      repeating-linear-gradient(90deg, hsl(15 35% 24% / 0.5) 0px, hsl(15 35% 24% / 0.5) 100px, hsl(20 15% 10%) 100px, hsl(20 15% 10%) 104px);
+      /* warm vignette */
+      radial-gradient(ellipse at 50% 0%, hsl(30 30% 18% / 0.55), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, hsl(0 0% 0% / 0.7), transparent 70%),
+      /* horizontal mortar lines */
+      repeating-linear-gradient(0deg, hsl(18 30% 18%) 0px, hsl(18 30% 18%) 48px, hsl(20 15% 6%) 48px, hsl(20 15% 6%) 52px),
+      /* vertical mortar lines (offset bricks effect) */
+      repeating-linear-gradient(90deg, hsl(18 30% 20% / 0.6) 0px, hsl(18 30% 20% / 0.6) 100px, hsl(20 15% 6%) 100px, hsl(20 15% 6%) 104px);
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -174,3 +179,14 @@
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Floating action buttons */
+.fab {
+  @apply h-10 w-10 rounded-full flex items-center justify-center shadow-lg transition-all;
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.fab:hover { transform: scale(1.08); background: hsl(var(--card)); }
+

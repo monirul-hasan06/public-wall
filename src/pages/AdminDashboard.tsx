@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { FloatingControls } from "@/components/FloatingControls";
 
 interface Post {
   id: string;
@@ -32,6 +33,40 @@ export default function AdminDashboard() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  // Change password
+  const [currentPwd, setCurrentPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [pwdLoading, setPwdLoading] = useState(false);
+
+  // Add admin
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [addAdminLoading, setAddAdminLoading] = useState(false);
+
+  const changePassword = async () => {
+    if (newPwd.length < 6) return toast.error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
+    if (newPwd !== confirmPwd) return toast.error("নতুন পাসওয়ার্ড মিলছে না");
+    setPwdLoading(true);
+    const { data, error } = await supabase.functions.invoke("change-password", {
+      body: { currentPassword: currentPwd, newPassword: newPwd },
+    });
+    setPwdLoading(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || "পরিবর্তন ব্যর্থ");
+    toast.success("পাসওয়ার্ড পরিবর্তন হয়েছে");
+    setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
+  };
+
+  const addAdmin = async () => {
+    const email = newAdminEmail.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return toast.error("সঠিক ইমেইল দিন");
+    setAddAdminLoading(true);
+    const { data, error } = await supabase.functions.invoke("add-admin", { body: { email } });
+    setAddAdminLoading(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || "অ্যাডমিন যোগ ব্যর্থ");
+    toast.success(`${email} এখন অ্যাডমিন (ডিফল্ট পাসওয়ার্ড: admin_pass06)`);
+    setNewAdminEmail("");
+  };
 
   useEffect(() => {
     document.title = "Admin Dashboard — দেয়াল লিখন";
@@ -149,6 +184,7 @@ export default function AdminDashboard() {
 
   return (
     <main className="min-h-screen px-4 py-8">
+      <FloatingControls showHome />
       <div className="mx-auto w-full max-w-4xl">
         <header className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <Link to="/" className="inline-flex items-center text-sm text-[hsl(48_30%_75%)] hover:text-[hsl(48_60%_92%)]">
@@ -196,6 +232,35 @@ export default function AdminDashboard() {
             </div>
           </div>
         </section>
+
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          <section className="card-glass rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <KeyRound className="h-4 w-4" /> পাসওয়ার্ড পরিবর্তন
+            </div>
+            <div className="space-y-2">
+              <Input type="password" placeholder="বর্তমান পাসওয়ার্ড" value={currentPwd} onChange={(e) => setCurrentPwd(e.target.value)} className="h-9" />
+              <Input type="password" placeholder="নতুন পাসওয়ার্ড (৬+)" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} className="h-9" />
+              <Input type="password" placeholder="নতুন পাসওয়ার্ড নিশ্চিত করুন" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className="h-9" />
+              <Button size="sm" onClick={changePassword} disabled={pwdLoading || !currentPwd || !newPwd || !confirmPwd} className="w-full">
+                {pwdLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "পরিবর্তন করুন"}
+              </Button>
+            </div>
+          </section>
+
+          <section className="card-glass rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <UserPlus className="h-4 w-4" /> নতুন অ্যাডমিন যোগ
+            </div>
+            <p className="text-xs text-muted-foreground">
+              ডিফল্ট পাসওয়ার্ড: <code className="font-mono">admin_pass06</code> — পরে তিনি নিজে পরিবর্তন করতে পারবেন।
+            </p>
+            <Input type="email" placeholder="gmail@example.com" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} className="h-9" />
+            <Button size="sm" onClick={addAdmin} disabled={addAdminLoading || !newAdminEmail} className="w-full">
+              {addAdminLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "অ্যাডমিন বানান"}
+            </Button>
+          </section>
+        </div>
 
         <section className="space-y-3">
           {loading ? (
