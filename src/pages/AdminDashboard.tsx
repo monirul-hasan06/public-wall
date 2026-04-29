@@ -306,6 +306,47 @@ export default function AdminDashboard() {
           </section>
         </div>
 
+        <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Megaphone className="h-4 w-4" /> ব্যবহারকারীদের নোটিফিকেশন পাঠান
+          </div>
+          <p className="text-xs text-muted-foreground">
+            যা লিখবেন তা সব ব্যবহারকারীর দেয়ালে ঘোষণা হিসেবে দেখাবে।
+          </p>
+          <Textarea
+            value={notifMsg}
+            onChange={(e) => setNotifMsg(e.target.value)}
+            placeholder="যেমন: আজ রাত ১০টায় দেয়াল কিছু সময়ের জন্য বন্ধ থাকবে..."
+            rows={3}
+            className="bg-background/60"
+          />
+          <Button size="sm" onClick={sendNotif} disabled={notifLoading || !notifMsg.trim()}>
+            {notifLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Megaphone className="mr-1 h-3.5 w-3.5" /> পাঠান</>}
+          </Button>
+
+          {notifs.length > 0 && (
+            <div className="border-t border-border pt-3 space-y-2">
+              <div className="text-xs text-muted-foreground">সাম্প্রতিক ঘোষণা</div>
+              {notifs.map((n) => (
+                <div key={n.id} className={`flex items-start gap-2 rounded border p-2 text-sm ${n.active ? "border-primary/30 bg-primary/5" : "border-border bg-background/40 opacity-60"}`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="whitespace-pre-wrap break-words">{n.message}</p>
+                    <time className="text-[10px] text-muted-foreground">
+                      {new Date(n.created_at).toLocaleString()} {n.active ? "" : "· নিষ্ক্রিয়"}
+                    </time>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => toggleNotif(n)} title={n.active ? "নিষ্ক্রিয় করুন" : "সক্রিয় করুন"}>
+                    <Power className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteNotif(n.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         <section className="space-y-3">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-[hsl(48_30%_75%)]">
