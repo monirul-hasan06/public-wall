@@ -233,6 +233,35 @@ export default function AdminDashboard() {
           </div>
         </section>
 
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          <section className="card-glass rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <KeyRound className="h-4 w-4" /> পাসওয়ার্ড পরিবর্তন
+            </div>
+            <div className="space-y-2">
+              <Input type="password" placeholder="বর্তমান পাসওয়ার্ড" value={currentPwd} onChange={(e) => setCurrentPwd(e.target.value)} className="h-9" />
+              <Input type="password" placeholder="নতুন পাসওয়ার্ড (৬+)" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} className="h-9" />
+              <Input type="password" placeholder="নতুন পাসওয়ার্ড নিশ্চিত করুন" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} className="h-9" />
+              <Button size="sm" onClick={changePassword} disabled={pwdLoading || !currentPwd || !newPwd || !confirmPwd} className="w-full">
+                {pwdLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "পরিবর্তন করুন"}
+              </Button>
+            </div>
+          </section>
+
+          <section className="card-glass rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <UserPlus className="h-4 w-4" /> নতুন অ্যাডমিন যোগ
+            </div>
+            <p className="text-xs text-muted-foreground">
+              ডিফল্ট পাসওয়ার্ড: <code className="font-mono">admin_pass06</code> — পরে তিনি নিজে পরিবর্তন করতে পারবেন।
+            </p>
+            <Input type="email" placeholder="gmail@example.com" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} className="h-9" />
+            <Button size="sm" onClick={addAdmin} disabled={addAdminLoading || !newAdminEmail} className="w-full">
+              {addAdminLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "অ্যাডমিন বানান"}
+            </Button>
+          </section>
+        </div>
+
         <section className="space-y-3">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-[hsl(48_30%_75%)]">
