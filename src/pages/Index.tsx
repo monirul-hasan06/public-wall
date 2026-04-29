@@ -2,19 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useTheme } from "@/hooks/useTheme";
 import { WriteBox } from "@/components/WriteBox";
 import { PostCard, type Post } from "@/components/PostCard";
 import { WallPagination } from "@/components/WallPagination";
+import { FloatingControls } from "@/components/FloatingControls";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogIn, LogOut, Loader2, Moon, Sun, LayoutDashboard, EyeOff } from "lucide-react";
+import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
 const Index = () => {
   const { user, isAdmin } = useAuth();
-  const { theme, toggle } = useTheme();
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -66,14 +65,7 @@ const Index = () => {
 
   return (
     <main className="min-h-screen px-4 py-10 sm:py-16">
-      {/* Floating theme toggle */}
-      <button
-        onClick={toggle}
-        aria-label="দিন/রাত মোড"
-        className="fixed top-4 right-4 z-50 h-10 w-10 rounded-full card-glass flex items-center justify-center text-[hsl(48_60%_92%)] hover:scale-105 transition-transform shadow-lg"
-      >
-        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </button>
+      <FloatingControls />
 
       <div className="mx-auto w-full max-w-2xl">
         <header className="mb-8 text-center animate-fade-in">
@@ -142,6 +134,16 @@ const Index = () => {
         <footer className="mt-16 text-center text-xs text-[hsl(48_30%_75%)]/70 space-y-3">
           <div>{total} টি পোস্ট দেয়ালে</div>
           <div>
+            <a
+              href="https://www.facebook.com/share/g/1ChcTjRzFZ/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[hsl(48_60%_92%)]/90 hover:text-primary transition-colors"
+            >
+              <Users className="h-3.5 w-3.5" /> Deyal Likhon — Facebook Community
+            </a>
+          </div>
+          <div>
             Made by{" "}
             <a
               href="https://www.facebook.com/monirul.hasan06"
@@ -154,7 +156,7 @@ const Index = () => {
           </div>
           {!user && (
             <div>
-              <Link to="/auth" className="inline-flex items-center text-[hsl(48_30%_75%)]/60 hover:text-[hsl(48_60%_92%)] transition-colors">
+              <Link to="/auth" className="inline-flex items-center text-[hsl(48_30%_75%)]/50 hover:text-[hsl(48_60%_92%)] transition-colors">
                 <LogIn className="mr-1 h-3 w-3" /> Admin Login
               </Link>
             </div>
