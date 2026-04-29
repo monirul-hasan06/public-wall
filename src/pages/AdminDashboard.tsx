@@ -44,6 +44,47 @@ export default function AdminDashboard() {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
+  // Notifications
+  type Notif = { id: string; message: string; created_at: string; active: boolean };
+  const [notifMsg, setNotifMsg] = useState("");
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifs, setNotifs] = useState<Notif[]>([]);
+
+  const fetchNotifs = useCallback(async () => {
+    const { data } = await (supabase as any)
+      .from("notifications")
+      .select("id, message, created_at, active")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setNotifs((data ?? []) as Notif[]);
+  }, []);
+
+  const sendNotif = async () => {
+    const msg = notifMsg.trim();
+    if (!msg) return toast.error("খালি রাখা যাবে না");
+    setNotifLoading(true);
+    const { error } = await (supabase as any).from("notifications").insert({ message: msg, active: true });
+    setNotifLoading(false);
+    if (error) return toast.error("পাঠানো গেল না");
+    toast.success("ঘোষণা পাঠানো হয়েছে");
+    setNotifMsg("");
+    fetchNotifs();
+  };
+
+  const toggleNotif = async (n: Notif) => {
+    const { error } = await (supabase as any).from("notifications").update({ active: !n.active }).eq("id", n.id);
+    if (error) return toast.error("পরিবর্তন ব্যর্থ");
+    fetchNotifs();
+  };
+
+  const deleteNotif = async (id: string) => {
+    if (!confirm("এই ঘোষণা মুছবেন?")) return;
+    const { error } = await (supabase as any).from("notifications").delete().eq("id", id);
+    if (error) return toast.error("মুছে ফেলা গেল না");
+    toast.success("মুছে ফেলা হয়েছে");
+    fetchNotifs();
+  };
+
   const changePassword = async () => {
     if (newPwd.length < 6) return toast.error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
     if (newPwd !== confirmPwd) return toast.error("নতুন পাসওয়ার্ড মিলছে না");
