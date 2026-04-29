@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 
@@ -43,6 +43,47 @@ export default function AdminDashboard() {
   // Add admin
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [addAdminLoading, setAddAdminLoading] = useState(false);
+
+  // Notifications
+  type Notif = { id: string; message: string; created_at: string; active: boolean };
+  const [notifMsg, setNotifMsg] = useState("");
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifs, setNotifs] = useState<Notif[]>([]);
+
+  const fetchNotifs = useCallback(async () => {
+    const { data } = await (supabase as any)
+      .from("notifications")
+      .select("id, message, created_at, active")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setNotifs((data ?? []) as Notif[]);
+  }, []);
+
+  const sendNotif = async () => {
+    const msg = notifMsg.trim();
+    if (!msg) return toast.error("খালি রাখা যাবে না");
+    setNotifLoading(true);
+    const { error } = await (supabase as any).from("notifications").insert({ message: msg, active: true });
+    setNotifLoading(false);
+    if (error) return toast.error("পাঠানো গেল না");
+    toast.success("ঘোষণা পাঠানো হয়েছে");
+    setNotifMsg("");
+    fetchNotifs();
+  };
+
+  const toggleNotif = async (n: Notif) => {
+    const { error } = await (supabase as any).from("notifications").update({ active: !n.active }).eq("id", n.id);
+    if (error) return toast.error("পরিবর্তন ব্যর্থ");
+    fetchNotifs();
+  };
+
+  const deleteNotif = async (id: string) => {
+    if (!confirm("এই ঘোষণা মুছবেন?")) return;
+    const { error } = await (supabase as any).from("notifications").delete().eq("id", id);
+    if (error) return toast.error("মুছে ফেলা গেল না");
+    toast.success("মুছে ফেলা হয়েছে");
+    fetchNotifs();
+  };
 
   const changePassword = async () => {
     if (newPwd.length < 6) return toast.error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
@@ -94,8 +135,11 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) fetchPage(page);
-  }, [page, fetchPage, isAdmin]);
+    if (isAdmin) {
+      fetchPage(page);
+      fetchNotifs();
+    }
+  }, [page, fetchPage, fetchNotifs, isAdmin]);
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
@@ -261,6 +305,47 @@ export default function AdminDashboard() {
             </Button>
           </section>
         </div>
+
+        <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Megaphone className="h-4 w-4" /> ব্যবহারকারীদের নোটিফিকেশন পাঠান
+          </div>
+          <p className="text-xs text-muted-foreground">
+            যা লিখবেন তা সব ব্যবহারকারীর দেয়ালে ঘোষণা হিসেবে দেখাবে।
+          </p>
+          <Textarea
+            value={notifMsg}
+            onChange={(e) => setNotifMsg(e.target.value)}
+            placeholder="যেমন: আজ রাত ১০টায় দেয়াল কিছু সময়ের জন্য বন্ধ থাকবে..."
+            rows={3}
+            className="bg-background/60"
+          />
+          <Button size="sm" onClick={sendNotif} disabled={notifLoading || !notifMsg.trim()}>
+            {notifLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Megaphone className="mr-1 h-3.5 w-3.5" /> পাঠান</>}
+          </Button>
+
+          {notifs.length > 0 && (
+            <div className="border-t border-border pt-3 space-y-2">
+              <div className="text-xs text-muted-foreground">সাম্প্রতিক ঘোষণা</div>
+              {notifs.map((n) => (
+                <div key={n.id} className={`flex items-start gap-2 rounded border p-2 text-sm ${n.active ? "border-primary/30 bg-primary/5" : "border-border bg-background/40 opacity-60"}`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="whitespace-pre-wrap break-words">{n.message}</p>
+                    <time className="text-[10px] text-muted-foreground">
+                      {new Date(n.created_at).toLocaleString()} {n.active ? "" : "· নিষ্ক্রিয়"}
+                    </time>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => toggleNotif(n)} title={n.active ? "নিষ্ক্রিয় করুন" : "সক্রিয় করুন"}>
+                    <Power className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteNotif(n.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="space-y-3">
           {loading ? (
