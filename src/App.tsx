@@ -7,6 +7,9 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import UserWall from "./pages/UserWall.tsx";
+import UserWallDashboard from "./pages/UserWallDashboard.tsx";
+import SetupWall from "./pages/SetupWall.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
