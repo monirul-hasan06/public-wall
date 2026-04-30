@@ -12,6 +12,7 @@ import { ArrowLeft, Loader2, Trash2, Pencil, Save, X, Megaphone, Power, Copy, Ho
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 import { censorText } from "@/lib/profanity";
+import { ShareWallButton } from "@/components/ShareWallButton";
 
 const PAGE_SIZE = 25;
 
