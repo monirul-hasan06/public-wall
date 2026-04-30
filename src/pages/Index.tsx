@@ -102,9 +102,32 @@ const Index = () => {
                   </Link>
                 </>
               )}
+              {myUsername && (
+                <>
+                  <Link to={`/u/${myUsername}`}>
+                    <Button size="sm" variant="outline" className="bg-primary/10">
+                      <HomeIcon className="mr-1.5 h-4 w-4" /> আপনার দেয়াল
+                    </Button>
+                  </Link>
+                  <Link to={`/wall/${myUsername}/dashboard`}>
+                    <Button size="sm" variant="outline">
+                      <LayoutDashboard className="mr-1.5 h-4 w-4" /> ড্যাশবোর্ড
+                    </Button>
+                  </Link>
+                </>
+              )}
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-[hsl(48_30%_75%)] hover:text-[hsl(48_60%_92%)]">
                 <LogOut className="mr-1.5 h-4 w-4" /> সাইন আউট
               </Button>
+            </div>
+          )}
+          {!user && (
+            <div className="mt-4">
+              <Link to="/auth">
+                <Button size="sm" variant="outline" className="bg-primary/10">
+                  <UserPlus className="mr-1.5 h-4 w-4" /> নিজের দেয়াল খুলুন
+                </Button>
+              </Link>
             </div>
           )}
         </header>
