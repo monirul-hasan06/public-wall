@@ -47,6 +47,12 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    if (!user) { setMyUsername(null); return; }
+    supabase.from("profiles").select("username").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setMyUsername(data?.username ?? null));
+  }, [user]);
+
+  useEffect(() => {
     fetchPage(page);
   }, [page, fetchPage]);
 
