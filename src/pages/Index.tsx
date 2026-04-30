@@ -9,7 +9,7 @@ import { FloatingControls } from "@/components/FloatingControls";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users } from "lucide-react";
+import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users, UserPlus, Home as HomeIcon } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
