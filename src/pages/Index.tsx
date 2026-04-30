@@ -9,7 +9,7 @@ import { FloatingControls } from "@/components/FloatingControls";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users } from "lucide-react";
+import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users, UserPlus, Home as HomeIcon } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -19,6 +19,7 @@ const Index = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [myUsername, setMyUsername] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -44,6 +45,12 @@ const Index = () => {
   useEffect(() => {
     document.title = "দেয়াল লিখন";
   }, []);
+
+  useEffect(() => {
+    if (!user) { setMyUsername(null); return; }
+    supabase.from("profiles").select("username").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setMyUsername(data?.username ?? null));
+  }, [user]);
 
   useEffect(() => {
     fetchPage(page);
@@ -95,9 +102,32 @@ const Index = () => {
                   </Link>
                 </>
               )}
+              {myUsername && (
+                <>
+                  <Link to={`/u/${myUsername}`}>
+                    <Button size="sm" variant="outline" className="bg-primary/10">
+                      <HomeIcon className="mr-1.5 h-4 w-4" /> আপনার দেয়াল
+                    </Button>
+                  </Link>
+                  <Link to={`/wall/${myUsername}/dashboard`}>
+                    <Button size="sm" variant="outline">
+                      <LayoutDashboard className="mr-1.5 h-4 w-4" /> ড্যাশবোর্ড
+                    </Button>
+                  </Link>
+                </>
+              )}
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-[hsl(48_30%_75%)] hover:text-[hsl(48_60%_92%)]">
                 <LogOut className="mr-1.5 h-4 w-4" /> সাইন আউট
               </Button>
+            </div>
+          )}
+          {!user && (
+            <div className="mt-4">
+              <Link to="/auth">
+                <Button size="sm" variant="outline" className="bg-primary/10">
+                  <UserPlus className="mr-1.5 h-4 w-4" /> নিজের দেয়াল খুলুন
+                </Button>
+              </Link>
             </div>
           )}
         </header>

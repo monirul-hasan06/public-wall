@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatDistanceToNow } from "date-fns";
+import { censorText } from "@/lib/profanity";
 
 export interface Post {
   id: string;
@@ -46,7 +47,7 @@ export function PostCard({
         </div>
       )}
       <p className="whitespace-pre-wrap break-words text-[hsl(20_30%_15%)] leading-relaxed font-medium">
-        {post.content}
+        {censorText(post.content)}
       </p>
       <div className="mt-4 flex items-center justify-between">
         <time className="text-xs text-[hsl(20_25%_30%)]">

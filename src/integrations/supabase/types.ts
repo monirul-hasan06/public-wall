@@ -53,6 +53,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -74,6 +101,67 @@ export type Database = {
         }
         Relationships: []
       }
+      wall_notifications: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          message: string
+          profile_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message: string
+          profile_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          message?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wall_notifications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wall_posts: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wall_posts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -86,6 +174,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_profile_owner: { Args: { _profile_id: string }; Returns: boolean }
+      profile_id_by_username: { Args: { _username: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
