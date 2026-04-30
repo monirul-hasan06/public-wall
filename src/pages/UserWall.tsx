@@ -48,11 +48,14 @@ export default function UserWall() {
 
   useEffect(() => {
     if (!username) return;
-    document.title = `${username} এর দেয়াল — দেয়াল লিখন`;
+    const uname = username.trim().toLowerCase();
+    document.title = `${uname} এর দেয়াল — দেয়াল লিখন`;
+    setNotFound(false);
+    setLoading(true);
     (async () => {
-      const { data } = await supabase.from("profiles")
-        .select("id, username, display_name, user_id").eq("username", username).maybeSingle();
-      if (!data) { setNotFound(true); setLoading(false); return; }
+      const { data, error } = await supabase.from("profiles")
+        .select("id, username, display_name, user_id").ilike("username", uname).maybeSingle();
+      if (error || !data) { setNotFound(true); setLoading(false); return; }
       setProfile(data as Profile);
     })();
   }, [username]);
