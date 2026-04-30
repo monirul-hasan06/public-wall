@@ -12,6 +12,7 @@ import { ArrowLeft, Loader2, Trash2, Pencil, Save, X, Megaphone, Power, Copy, Ho
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 import { censorText } from "@/lib/profanity";
+import { ShareWallButton } from "@/components/ShareWallButton";
 
 const PAGE_SIZE = 25;
 
@@ -196,8 +197,9 @@ export default function UserWallDashboard() {
           <Link to={`/u/${username}`} className="inline-flex items-center text-sm text-[hsl(48_30%_75%)] hover:text-[hsl(48_60%_92%)]">
             <ArrowLeft className="mr-1 h-4 w-4" /> দেয়ালে যান
           </Link>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={copyLink}><Copy className="mr-1.5 h-4 w-4" /> লিংক কপি</Button>
+            <ShareWallButton url={`${window.location.origin}/u/${username}`} title={`${displayName || username} এর দেয়ালে লিখুন`} />
             <Link to="/"><Button size="sm" variant="ghost" className="text-[hsl(48_30%_75%)]"><Home className="mr-1.5 h-4 w-4" /> মূল</Button></Link>
           </div>
         </div>

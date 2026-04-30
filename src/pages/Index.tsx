@@ -9,7 +9,7 @@ import { FloatingControls } from "@/components/FloatingControls";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users, UserPlus, Home as HomeIcon } from "lucide-react";
+import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users, UserPlus, Home as HomeIcon, Compass } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -88,8 +88,16 @@ const Index = () => {
             কেউ জানবে না কে লিখেছে — অ্যাডমিনও না
           </div>
 
+          <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
+            <Link to="/profiles">
+              <Button size="sm" variant="outline" className="bg-primary/10">
+                <Compass className="mr-1.5 h-4 w-4" /> সব দেয়াল ঘুরে দেখুন
+              </Button>
+            </Link>
+          </div>
+
           {user && (
-            <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
+            <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
               {isAdmin && (
                 <>
                   <span className="px-2.5 py-1 rounded-full text-xs bg-primary/20 text-primary border border-primary/40">

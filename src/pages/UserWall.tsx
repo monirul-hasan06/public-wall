@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Megaphone, X, Copy, LayoutDashboard, Home } from "lucide-react";
+import { ShareWallButton } from "@/components/ShareWallButton";
 import { censorText, containsProfanity } from "@/lib/profanity";
 
 const PAGE_SIZE = 10;
@@ -48,11 +49,14 @@ export default function UserWall() {
 
   useEffect(() => {
     if (!username) return;
-    document.title = `${username} এর দেয়াল — দেয়াল লিখন`;
+    const uname = username.trim().toLowerCase();
+    document.title = `${uname} এর দেয়াল — দেয়াল লিখন`;
+    setNotFound(false);
+    setLoading(true);
     (async () => {
-      const { data } = await supabase.from("profiles")
-        .select("id, username, display_name, user_id").eq("username", username).maybeSingle();
-      if (!data) { setNotFound(true); setLoading(false); return; }
+      const { data, error } = await supabase.from("profiles")
+        .select("id, username, display_name, user_id").ilike("username", uname).maybeSingle();
+      if (error || !data) { setNotFound(true); setLoading(false); return; }
       setProfile(data as Profile);
     })();
   }, [username]);
@@ -131,8 +135,12 @@ export default function UserWall() {
           <p className="mt-2 text-[hsl(48_30%_75%)]/90">এর ব্যক্তিগত দেয়াল</p>
           <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={copyLink}>
-              <Copy className="mr-1.5 h-4 w-4" /> লিংক কপি করুন
+              <Copy className="mr-1.5 h-4 w-4" /> লিংক কপি
             </Button>
+            <ShareWallButton
+              url={`${window.location.origin}/u/${username}`}
+              title={`${profile?.display_name || username} এর দেয়ালে লিখুন`}
+            />
             <Link to="/"><Button size="sm" variant="ghost" className="text-[hsl(48_30%_75%)]"><Home className="mr-1.5 h-4 w-4" /> মূল দেয়াল</Button></Link>
             {isOwner && (
               <Link to={`/wall/${username}/dashboard`}>

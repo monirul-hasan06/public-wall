@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import UserWall from "./pages/UserWall.tsx";
 import UserWallDashboard from "./pages/UserWallDashboard.tsx";
 import SetupWall from "./pages/SetupWall.tsx";
+import Profiles from "./pages/Profiles.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/setup-wall" element={<SetupWall />} />
+            <Route path="/profiles" element={<Profiles />} />
             <Route path="/u/:username" element={<UserWall />} />
             <Route path="/wall/:username/dashboard" element={<UserWallDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
