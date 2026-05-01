@@ -13,12 +13,15 @@ import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 import { censorText } from "@/lib/profanity";
 import { ShareWallButton } from "@/components/ShareWallButton";
+import { getWallPath, getWallShareUrl } from "@/lib/wallLinks";
 
 const PAGE_SIZE = 25;
 
 interface Profile { id: string; username: string; display_name: string; user_id: string; }
 interface WPost { id: string; content: string; created_at: string; }
 interface WNotif { id: string; message: string; created_at: string; active: boolean; }
+interface WarningItem { id: string; message: string; created_at: string; read_at: string | null; }
+interface Moderation { permanently_paused: boolean; paused_until: string | null; reason: string | null; }
 
 export default function UserWallDashboard() {
   const { username } = useParams<{ username: string }>();
@@ -47,8 +50,13 @@ export default function UserWallDashboard() {
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
+  const [warnings, setWarnings] = useState<WarningItem[]>([]);
+  const [moderation, setModeration] = useState<Moderation | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const shareUrl = profile ? getWallShareUrl(profile.username) : "";
+  const wallPath = profile ? getWallPath(profile.username) : "/";
+  const isPaused = !!moderation && (moderation.permanently_paused || (!!moderation.paused_until && new Date(moderation.paused_until) > new Date()));
 
   useEffect(() => { document.title = "আপনার ড্যাশবোর্ড — দেয়াল লিখন"; }, []);
 
@@ -58,10 +66,16 @@ export default function UserWallDashboard() {
     if (!username) return;
     (async () => {
       const { data } = await supabase.from("profiles")
-        .select("id, username, display_name, user_id").eq("username", username).maybeSingle();
+        .select("id, username, display_name, user_id").ilike("username", username.toLowerCase()).maybeSingle();
       if (!data || data.user_id !== user.id) { setDenied(true); return; }
       setProfile(data as Profile);
       setDisplayName(data.display_name);
+      const [{ data: warningRows }, { data: modRow }] = await Promise.all([
+        (supabase as any).from("user_warnings").select("id, message, created_at, read_at").eq("profile_id", data.id).order("created_at", { ascending: false }).limit(20),
+        (supabase as any).from("user_moderation").select("permanently_paused, paused_until, reason").eq("profile_id", data.id).maybeSingle(),
+      ]);
+      setWarnings((warningRows ?? []) as WarningItem[]);
+      setModeration((modRow ?? null) as Moderation | null);
     })();
   }, [user, authLoading, username, navigate]);
 
@@ -172,7 +186,8 @@ export default function UserWallDashboard() {
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/u/${username}`);
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl);
     toast.success("লিংক কপি হয়েছে");
   };
 
@@ -194,15 +209,34 @@ export default function UserWallDashboard() {
       <FloatingControls />
       <div className="mx-auto w-full max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <Link to={`/u/${username}`} className="inline-flex items-center text-sm text-[hsl(48_30%_75%)] hover:text-[hsl(48_60%_92%)]">
+          <Link to={wallPath} className="inline-flex items-center text-sm text-[hsl(48_30%_75%)] hover:text-[hsl(48_60%_92%)]">
             <ArrowLeft className="mr-1 h-4 w-4" /> দেয়ালে যান
           </Link>
           <div className="flex gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={copyLink}><Copy className="mr-1.5 h-4 w-4" /> লিংক কপি</Button>
-            <ShareWallButton url={`${window.location.origin}/u/${username}`} title={`${displayName || username} এর দেয়ালে লিখুন`} />
+            <ShareWallButton url={shareUrl} title={`${displayName || username} এর দেয়ালে লিখুন`} />
             <Link to="/"><Button size="sm" variant="ghost" className="text-[hsl(48_30%_75%)]"><Home className="mr-1.5 h-4 w-4" /> মূল</Button></Link>
           </div>
         </div>
+
+        {isPaused && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">
+            আপনার আইডি অ্যাডমিন দ্বারা {moderation?.permanently_paused ? "স্থায়ীভাবে" : `${new Date(moderation?.paused_until || "").toLocaleString()} পর্যন্ত`} বন্ধ আছে।
+            {moderation?.reason ? <span className="block mt-1 text-muted-foreground">কারণ: {censorText(moderation.reason)}</span> : null}
+          </div>
+        )}
+
+        {warnings.length > 0 && (
+          <div className="card-glass rounded-2xl p-5 space-y-2 border-destructive/30">
+            <h2 className="font-semibold text-destructive">অ্যাডমিন সতর্কবার্তা</h2>
+            {warnings.map((w) => (
+              <div key={w.id} className="rounded border border-border/40 p-3 text-sm">
+                <p className="whitespace-pre-wrap break-words">{censorText(w.message)}</p>
+                <time className="mt-1 block text-xs text-muted-foreground">{new Date(w.created_at).toLocaleString()}</time>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="card-glass rounded-2xl p-6">
           <h1 className="text-2xl font-semibold mb-1">{profile.display_name} এর ড্যাশবোর্ড</h1>
@@ -217,7 +251,7 @@ export default function UserWallDashboard() {
               <Label>প্রদর্শনের নাম</Label>
               <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={50} />
             </div>
-            <Button onClick={saveDisplayName} disabled={savingName} size="sm">
+            <Button onClick={saveDisplayName} disabled={savingName || isPaused} size="sm">
               {savingName ? "..." : "সংরক্ষণ"}
             </Button>
           </div>
@@ -236,7 +270,7 @@ export default function UserWallDashboard() {
         <div className="card-glass rounded-2xl p-5 space-y-3">
           <h2 className="font-semibold flex items-center gap-1.5"><Megaphone className="h-4 w-4" /> দেয়ালে ঘোষণা পাঠান</h2>
           <Textarea value={notifMsg} onChange={(e) => setNotifMsg(e.target.value)} rows={3} maxLength={500} placeholder="আপনার ঘোষণা..." />
-          <Button onClick={sendNotif} disabled={notifLoading || !notifMsg.trim()} size="sm">
+          <Button onClick={sendNotif} disabled={notifLoading || isPaused || !notifMsg.trim()} size="sm">
             {notifLoading ? "..." : "পাঠান"}
           </Button>
           {notifs.length > 0 && (
