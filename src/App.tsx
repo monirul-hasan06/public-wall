@@ -13,6 +13,14 @@ import SetupWall from "./pages/SetupWall.tsx";
 import Profiles from "./pages/Profiles.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
+const SharedWallRedirect = () => {
+  const params = new URLSearchParams(window.location.search);
+  const username = params.get("wall")?.trim().toLowerCase();
+  if (!username) return <Index />;
+  window.history.replaceState(null, "", `/u/${encodeURIComponent(username)}`);
+  return <UserWall />;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -23,7 +31,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<SharedWallRedirect />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/setup-wall" element={<SetupWall />} />
