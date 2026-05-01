@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power, Ban, RotateCcw, SendHorizontal, Search, UserX, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 
@@ -16,6 +16,15 @@ interface Post {
   id: string;
   content: string;
   created_at: string;
+}
+
+interface ProfileRow {
+  id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  created_at: string;
+  moderation?: { permanently_paused: boolean; paused_until: string | null; reason: string | null } | null;
 }
 
 const PAGE_SIZE = 25;
@@ -50,6 +59,16 @@ export default function AdminDashboard() {
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifs, setNotifs] = useState<Notif[]>([]);
 
+  // User controls
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [profileSearch, setProfileSearch] = useState("");
+  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [pauseMode, setPauseMode] = useState("7d");
+  const [customPauseUntil, setCustomPauseUntil] = useState("");
+  const [pauseReason, setPauseReason] = useState("");
+  const [warningMsg, setWarningMsg] = useState("");
+  const [userActionLoading, setUserActionLoading] = useState(false);
+
   const fetchNotifs = useCallback(async () => {
     const { data } = await (supabase as any)
       .from("notifications")
@@ -57,6 +76,15 @@ export default function AdminDashboard() {
       .order("created_at", { ascending: false })
       .limit(20);
     setNotifs((data ?? []) as Notif[]);
+  }, []);
+
+  const fetchProfiles = useCallback(async () => {
+    const [{ data: profileRows }, { data: moderationRows }] = await Promise.all([
+      supabase.from("profiles").select("id, user_id, username, display_name, created_at").order("created_at", { ascending: false }).limit(1000),
+      (supabase as any).from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
+    ]);
+    const moderationByProfile = new Map((moderationRows ?? []).map((m: any) => [m.profile_id, m]));
+    setProfiles(((profileRows ?? []) as ProfileRow[]).map((p) => ({ ...p, moderation: moderationByProfile.get(p.id) ?? null })));
   }, []);
 
   const sendNotif = async () => {
@@ -109,6 +137,44 @@ export default function AdminDashboard() {
     setNewAdminEmail("");
   };
 
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
+  const filteredProfiles = useMemo(() => {
+    const q = profileSearch.trim().toLowerCase();
+    if (!q) return profiles;
+    return profiles.filter((p) => p.username.toLowerCase().includes(q) || p.display_name.toLowerCase().includes(q));
+  }, [profiles, profileSearch]);
+
+  const getPauseUntil = () => {
+    if (pauseMode === "permanent") return null;
+    if (pauseMode === "custom") return customPauseUntil ? new Date(customPauseUntil).toISOString() : null;
+    const days = Number(pauseMode.replace("d", ""));
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  };
+
+  const manageUser = async (action: "pause" | "unpause" | "warn" | "delete") => {
+    if (!selectedProfile) return toast.error("একজন ইউজার নির্বাচন করুন");
+    if (action === "delete" && !confirm(`@${selectedProfile.username} আইডি স্থায়ীভাবে মুছবেন?`)) return;
+    setUserActionLoading(true);
+    const { data, error } = await supabase.functions.invoke("manage-user", {
+      body: {
+        action,
+        userId: selectedProfile.user_id,
+        profileId: selectedProfile.id,
+        permanent: pauseMode === "permanent",
+        pausedUntil: getPauseUntil(),
+        reason: pauseReason.trim(),
+        message: warningMsg.trim(),
+      },
+    });
+    setUserActionLoading(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || "কাজটি সম্পন্ন হলো না");
+    toast.success("সম্পন্ন হয়েছে");
+    if (action === "warn") setWarningMsg("");
+    if (action === "pause" || action === "unpause") setPauseReason("");
+    if (action === "delete") setSelectedProfileId("");
+    fetchProfiles();
+  };
+
   useEffect(() => {
     document.title = "Admin Dashboard — দেয়াল লিখন";
   }, []);
@@ -138,8 +204,9 @@ export default function AdminDashboard() {
     if (isAdmin) {
       fetchPage(page);
       fetchNotifs();
+      fetchProfiles();
     }
-  }, [page, fetchPage, fetchNotifs, isAdmin]);
+  }, [page, fetchPage, fetchNotifs, fetchProfiles, isAdmin]);
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
