@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2, Megaphone, X, Copy, LayoutDashboard, Home } from "lucide-react";
 import { ShareWallButton } from "@/components/ShareWallButton";
 import { censorText, containsProfanity } from "@/lib/profanity";
+import { getWallShareUrl } from "@/lib/wallLinks";
 
 const PAGE_SIZE = 10;
 const MAX = 1000;
@@ -24,6 +25,7 @@ const containsLink = (t: string) => LINK_PATTERNS.some((re) => re.test(t));
 
 interface Profile { id: string; username: string; display_name: string; user_id: string; }
 interface WallNotif { id: string; message: string; created_at: string; }
+interface Moderation { permanently_paused: boolean; paused_until: string | null; reason: string | null; }
 
 export default function UserWall() {
   const { username } = useParams<{ username: string }>();
@@ -38,9 +40,12 @@ export default function UserWall() {
   const [submitting, setSubmitting] = useState(false);
   const [notifs, setNotifs] = useState<WallNotif[]>([]);
   const [dismissed, setDismissed] = useState<string[]>([]);
+  const [moderation, setModeration] = useState<Moderation | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const isOwner = !!user && !!profile && user.id === profile.user_id;
+  const shareUrl = profile ? getWallShareUrl(profile.username) : "";
+  const isPaused = !!moderation && (moderation.permanently_paused || (!!moderation.paused_until && new Date(moderation.paused_until) > new Date()));
 
   useEffect(() => {
     const key = `dismissed_wall_notifs_${username}`;
@@ -58,6 +63,12 @@ export default function UserWall() {
         .select("id, username, display_name, user_id").ilike("username", uname).maybeSingle();
       if (error || !data) { setNotFound(true); setLoading(false); return; }
       setProfile(data as Profile);
+      const { data: mod } = await (supabase as any)
+        .from("user_moderation")
+        .select("permanently_paused, paused_until, reason")
+        .eq("profile_id", data.id)
+        .maybeSingle();
+      setModeration((mod ?? null) as Moderation | null);
     })();
   }, [username]);
 
@@ -90,6 +101,7 @@ export default function UserWall() {
 
   const handlePost = async () => {
     if (!profile) return;
+    if (isPaused) return toast.error("এই দেয়ালটি আপাতত বন্ধ আছে");
     const trimmed = content.trim();
     if (!trimmed) return toast.error("কিছু লিখুন");
     if (trimmed.length > MAX) return toast.error(`সর্বোচ্চ ${MAX} অক্ষর`);
@@ -109,7 +121,8 @@ export default function UserWall() {
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/u/${username}`);
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl);
     toast.success("লিংক কপি হয়েছে");
   };
 
@@ -138,17 +151,24 @@ export default function UserWall() {
               <Copy className="mr-1.5 h-4 w-4" /> লিংক কপি
             </Button>
             <ShareWallButton
-              url={`${window.location.origin}/u/${username}`}
+              url={shareUrl}
               title={`${profile?.display_name || username} এর দেয়ালে লিখুন`}
             />
             <Link to="/"><Button size="sm" variant="ghost" className="text-[hsl(48_30%_75%)]"><Home className="mr-1.5 h-4 w-4" /> মূল দেয়াল</Button></Link>
             {isOwner && (
-              <Link to={`/wall/${username}/dashboard`}>
+              <Link to={`/wall/${profile?.username}/dashboard`}>
                 <Button size="sm" variant="outline"><LayoutDashboard className="mr-1.5 h-4 w-4" /> আপনার ড্যাশবোর্ড</Button>
               </Link>
             )}
           </div>
         </header>
+
+        {isPaused && (
+          <div className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-foreground">
+            এই দেয়ালটি অ্যাডমিন দ্বারা {moderation?.permanently_paused ? "স্থায়ীভাবে" : `${new Date(moderation?.paused_until || "").toLocaleString()} পর্যন্ত`} বন্ধ করা হয়েছে।
+            {moderation?.reason ? <span className="block mt-1 text-muted-foreground">কারণ: {censorText(moderation.reason)}</span> : null}
+          </div>
+        )}
 
         {visibleNotifs.length > 0 && (
           <div className="space-y-2 mb-6 animate-fade-in">
@@ -172,15 +192,16 @@ export default function UserWall() {
         <section className="mb-10">
           <div className="relative poster rounded-sm p-6 pt-8" style={{ transform: "rotate(-0.6deg)" }}>
             <span className="tape tape-tl" /><span className="tape tape-tr" />
-            <Textarea value={content} onChange={(e) => setContent(e.target.value)}
+              <Textarea value={content} onChange={(e) => setContent(e.target.value)}
               placeholder={`${profile?.display_name || ""} এর দেয়ালে কিছু লিখুন... (কেউ জানবে না কে লিখেছে)`}
               rows={4} maxLength={MAX}
+              disabled={isPaused}
               className="resize-none border-0 bg-transparent text-base text-[hsl(20_30%_15%)] placeholder:text-[hsl(20_25%_35%)]/60 focus-visible:ring-0 font-medium" />
             <div className="mt-3 flex items-center justify-between gap-2">
               <span className="text-xs text-[hsl(20_25%_30%)] tabular-nums">{content.length}/{MAX}</span>
-              <Button onClick={handlePost} disabled={submitting || !content.trim()}
+              <Button onClick={handlePost} disabled={submitting || isPaused || !content.trim()}
                 className="bg-[hsl(15_70%_35%)] text-[hsl(48_60%_92%)] hover:bg-[hsl(15_75%_30%)] font-semibold tracking-wide">
-                {submitting ? "পেস্ট হচ্ছে..." : "পেস্ট"}
+                {submitting ? "পেস্ট হচ্ছে..." : isPaused ? "বন্ধ আছে" : "পেস্ট"}
               </Button>
             </div>
             <p className="mt-2 text-[11px] text-[hsl(20_25%_30%)]/80">
