@@ -144,6 +144,10 @@ export default function AdminDashboard() {
   };
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
+  const selectedPaused = !!selectedProfile?.moderation && (
+    selectedProfile.moderation.permanently_paused ||
+    (!!selectedProfile.moderation.paused_until && new Date(selectedProfile.moderation.paused_until) > new Date())
+  );
   const filteredProfiles = useMemo(() => {
     const q = profileSearch.trim().toLowerCase();
     if (!q) return profiles;
