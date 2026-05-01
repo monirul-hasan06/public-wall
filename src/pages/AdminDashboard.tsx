@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power, Ban, RotateCcw, SendHorizontal, Search, UserX, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 
@@ -16,6 +16,15 @@ interface Post {
   id: string;
   content: string;
   created_at: string;
+}
+
+interface ProfileRow {
+  id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  created_at: string;
+  moderation?: { permanently_paused: boolean; paused_until: string | null; reason: string | null } | null;
 }
 
 const PAGE_SIZE = 25;
@@ -50,6 +59,16 @@ export default function AdminDashboard() {
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifs, setNotifs] = useState<Notif[]>([]);
 
+  // User controls
+  const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [profileSearch, setProfileSearch] = useState("");
+  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [pauseMode, setPauseMode] = useState("7d");
+  const [customPauseUntil, setCustomPauseUntil] = useState("");
+  const [pauseReason, setPauseReason] = useState("");
+  const [warningMsg, setWarningMsg] = useState("");
+  const [userActionLoading, setUserActionLoading] = useState(false);
+
   const fetchNotifs = useCallback(async () => {
     const { data } = await (supabase as any)
       .from("notifications")
@@ -57,6 +76,21 @@ export default function AdminDashboard() {
       .order("created_at", { ascending: false })
       .limit(20);
     setNotifs((data ?? []) as Notif[]);
+  }, []);
+
+  const fetchProfiles = useCallback(async () => {
+    const [{ data: profileRows }, { data: moderationRows }] = await Promise.all([
+      supabase.from("profiles").select("id, user_id, username, display_name, created_at").order("created_at", { ascending: false }).limit(1000),
+      (supabase as any).from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
+    ]);
+    const moderationByProfile = new Map<string, ProfileRow["moderation"]>(
+      (moderationRows ?? []).map((m: any) => [m.profile_id, {
+        permanently_paused: !!m.permanently_paused,
+        paused_until: m.paused_until ?? null,
+        reason: m.reason ?? null,
+      }])
+    );
+    setProfiles(((profileRows ?? []) as ProfileRow[]).map((p) => ({ ...p, moderation: moderationByProfile.get(p.id) ?? null })));
   }, []);
 
   const sendNotif = async () => {
@@ -109,6 +143,48 @@ export default function AdminDashboard() {
     setNewAdminEmail("");
   };
 
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
+  const selectedPaused = !!selectedProfile?.moderation && (
+    selectedProfile.moderation.permanently_paused ||
+    (!!selectedProfile.moderation.paused_until && new Date(selectedProfile.moderation.paused_until) > new Date())
+  );
+  const filteredProfiles = useMemo(() => {
+    const q = profileSearch.trim().toLowerCase();
+    if (!q) return profiles;
+    return profiles.filter((p) => p.username.toLowerCase().includes(q) || p.display_name.toLowerCase().includes(q));
+  }, [profiles, profileSearch]);
+
+  const getPauseUntil = () => {
+    if (pauseMode === "permanent") return null;
+    if (pauseMode === "custom") return customPauseUntil ? new Date(customPauseUntil).toISOString() : null;
+    const days = Number(pauseMode.replace("d", ""));
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  };
+
+  const manageUser = async (action: "pause" | "unpause" | "warn" | "delete") => {
+    if (!selectedProfile) return toast.error("একজন ইউজার নির্বাচন করুন");
+    if (action === "delete" && !confirm(`@${selectedProfile.username} আইডি স্থায়ীভাবে মুছবেন?`)) return;
+    setUserActionLoading(true);
+    const { data, error } = await supabase.functions.invoke("manage-user", {
+      body: {
+        action,
+        userId: selectedProfile.user_id,
+        profileId: selectedProfile.id,
+        permanent: pauseMode === "permanent",
+        pausedUntil: getPauseUntil(),
+        reason: pauseReason.trim(),
+        message: warningMsg.trim(),
+      },
+    });
+    setUserActionLoading(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || "কাজটি সম্পন্ন হলো না");
+    toast.success("সম্পন্ন হয়েছে");
+    if (action === "warn") setWarningMsg("");
+    if (action === "pause" || action === "unpause") setPauseReason("");
+    if (action === "delete") setSelectedProfileId("");
+    fetchProfiles();
+  };
+
   useEffect(() => {
     document.title = "Admin Dashboard — দেয়াল লিখন";
   }, []);
@@ -138,8 +214,9 @@ export default function AdminDashboard() {
     if (isAdmin) {
       fetchPage(page);
       fetchNotifs();
+      fetchProfiles();
     }
-  }, [page, fetchPage, fetchNotifs, isAdmin]);
+  }, [page, fetchPage, fetchNotifs, fetchProfiles, isAdmin]);
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
@@ -305,6 +382,66 @@ export default function AdminDashboard() {
             </Button>
           </section>
         </div>
+
+        <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Ban className="h-4 w-4" /> ইউজার আইডি নিয়ন্ত্রণ
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={profileSearch} onChange={(e) => setProfileSearch(e.target.value)} placeholder="নাম বা ইউজারনেম খুঁজুন..." className="pl-9 h-9" />
+          </div>
+          <div className="max-h-52 overflow-auto rounded border border-border/60 bg-background/30">
+            {filteredProfiles.length === 0 ? (
+              <div className="p-3 text-sm text-muted-foreground">কোনো ইউজার পাওয়া যায়নি</div>
+            ) : filteredProfiles.map((p) => {
+              const paused = !!p.moderation && (p.moderation.permanently_paused || (!!p.moderation.paused_until && new Date(p.moderation.paused_until) > new Date()));
+              return (
+                <button key={p.id} onClick={() => setSelectedProfileId(p.id)} className={`w-full p-3 text-left text-sm hover:bg-accent/20 border-b border-border/40 last:border-b-0 ${selectedProfileId === p.id ? "bg-primary/10" : ""}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-foreground">{p.display_name}</span>
+                    {paused && <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs text-destructive">বন্ধ</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground">@{p.username}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedProfile && (
+            <div className="rounded-lg border border-border/60 p-3 space-y-3 bg-background/30">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div>
+                  <div className="font-semibold">{selectedProfile.display_name}</div>
+                  <div className="text-xs text-muted-foreground">@{selectedProfile.username} {selectedPaused ? "· আইডি বন্ধ" : ""}</div>
+                </div>
+                <Link to={`/u/${selectedProfile.username}`} target="_blank">
+                  <Button size="sm" variant="outline"><ExternalLink className="mr-1 h-3.5 w-3.5" /> দেয়াল দেখুন</Button>
+                </Link>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-2">
+                <Button size="sm" variant={pauseMode === "1d" ? "default" : "outline"} onClick={() => setPauseMode("1d")}>১ দিন</Button>
+                <Button size="sm" variant={pauseMode === "7d" ? "default" : "outline"} onClick={() => setPauseMode("7d")}>৭ দিন</Button>
+                <Button size="sm" variant={pauseMode === "permanent" ? "default" : "outline"} onClick={() => setPauseMode("permanent")}>স্থায়ী</Button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <Input type="datetime-local" value={customPauseUntil} onChange={(e) => { setCustomPauseUntil(e.target.value); setPauseMode("custom"); }} className="h-9" />
+                <Input value={pauseReason} onChange={(e) => setPauseReason(e.target.value)} placeholder="কারণ (ঐচ্ছিক)" className="h-9" maxLength={500} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="destructive" disabled={userActionLoading} onClick={() => manageUser("pause")}><Ban className="mr-1 h-3.5 w-3.5" /> আইডি বন্ধ করুন</Button>
+                <Button size="sm" variant="outline" disabled={userActionLoading || !selectedPaused} onClick={() => manageUser("unpause")}><RotateCcw className="mr-1 h-3.5 w-3.5" /> চালু করুন</Button>
+                <Button size="sm" variant="destructive" disabled={userActionLoading} onClick={() => manageUser("delete")}><UserX className="mr-1 h-3.5 w-3.5" /> আইডি ডিলিট</Button>
+              </div>
+
+              <div className="border-t border-border pt-3 space-y-2">
+                <Textarea value={warningMsg} onChange={(e) => setWarningMsg(e.target.value)} placeholder="ইউজারকে সতর্কবার্তা লিখুন..." rows={2} maxLength={1000} />
+                <Button size="sm" disabled={userActionLoading || !warningMsg.trim()} onClick={() => manageUser("warn")}><SendHorizontal className="mr-1 h-3.5 w-3.5" /> সতর্কবার্তা পাঠান</Button>
+              </div>
+            </div>
+          )}
+        </section>
 
         <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">

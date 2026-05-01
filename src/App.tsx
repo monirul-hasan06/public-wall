@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +13,13 @@ import SetupWall from "./pages/SetupWall.tsx";
 import Profiles from "./pages/Profiles.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
+const SharedWallRedirect = () => {
+  const params = new URLSearchParams(window.location.search);
+  const username = params.get("wall")?.trim().toLowerCase();
+  if (!username) return <Index />;
+  return <Navigate to={`/u/${encodeURIComponent(username)}`} replace />;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -23,7 +30,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<SharedWallRedirect />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/setup-wall" element={<SetupWall />} />

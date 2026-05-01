@@ -12,7 +12,7 @@ interface Props {
 
 export function ShareWallButton({ url, title = "আমার দেয়াল দেখুন", label = "শেয়ার করুন" }: Props) {
   const [open, setOpen] = useState(false);
-  const text = `${title} — ${url}`;
+  const text = `${title}\n${url}`;
   const enc = encodeURIComponent;
 
   const tryNative = async () => {
@@ -52,8 +52,8 @@ export function ShareWallButton({ url, title = "আমার দেয়াল 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="outline" onClick={handleClick}>
-          <Share2 className="mr-1.5 h-4 w-4" /> {label}
+        <Button size="sm" variant="outline" onClick={handleClick} aria-label={label || "শেয়ার করুন"} title={label || "শেয়ার করুন"}>
+          <Share2 className={label ? "mr-1.5 h-4 w-4" : "h-4 w-4"} /> {label}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2">

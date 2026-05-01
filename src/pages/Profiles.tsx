@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FloatingControls } from "@/components/FloatingControls";
 import { ShareWallButton } from "@/components/ShareWallButton";
 import { Search, Home as HomeIcon, ExternalLink, Loader2, Users } from "lucide-react";
+import { getWallPath, getWallShareUrl } from "@/lib/wallLinks";
 
 interface Profile {
   id: string;
@@ -82,19 +83,20 @@ export default function Profiles() {
         ) : (
           <ul className="space-y-3">
             {filtered.map((p) => {
-              const url = `${window.location.origin}/u/${p.username}`;
+              const url = getWallShareUrl(p.username);
+              const path = getWallPath(p.username);
               return (
                 <li
                   key={p.id}
                   className="card-glass rounded-lg p-4 flex items-center justify-between gap-3 hover:bg-accent/10 transition-colors"
                 >
-                  <Link to={`/u/${p.username}`} className="flex-1 min-w-0">
+                  <Link to={path} className="flex-1 min-w-0">
                     <div className="font-semibold text-foreground truncate">{p.display_name}</div>
                     <div className="text-xs text-muted-foreground truncate">@{p.username}</div>
                   </Link>
                   <div className="flex items-center gap-2 shrink-0">
                     <ShareWallButton url={url} title={`${p.display_name} এর দেয়ালে লিখুন`} label="" />
-                    <Link to={`/u/${p.username}`}>
+                    <Link to={path}>
                       <Button size="sm" variant="outline">
                         <ExternalLink className="mr-1.5 h-4 w-4" /> লিখুন
                       </Button>

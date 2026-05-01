@@ -80,6 +80,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_moderation: {
+        Row: {
+          paused_until: string | null
+          permanently_paused: boolean
+          profile_id: string
+          reason: string | null
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          paused_until?: string | null
+          permanently_paused?: boolean
+          profile_id: string
+          reason?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          paused_until?: string | null
+          permanently_paused?: boolean
+          profile_id?: string
+          reason?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_moderation_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -100,6 +138,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_warnings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          profile_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          profile_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          profile_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_warnings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wall_notifications: {
         Row: {
@@ -175,6 +251,8 @@ export type Database = {
         Returns: boolean
       }
       is_profile_owner: { Args: { _profile_id: string }; Returns: boolean }
+      is_profile_paused: { Args: { _profile_id: string }; Returns: boolean }
+      is_user_paused: { Args: { _user_id: string }; Returns: boolean }
       profile_id_by_username: { Args: { _username: string }; Returns: string }
     }
     Enums: {
