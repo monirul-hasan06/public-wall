@@ -385,6 +385,66 @@ export default function AdminDashboard() {
 
         <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Ban className="h-4 w-4" /> ইউজার আইডি নিয়ন্ত্রণ
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={profileSearch} onChange={(e) => setProfileSearch(e.target.value)} placeholder="নাম বা ইউজারনেম খুঁজুন..." className="pl-9 h-9" />
+          </div>
+          <div className="max-h-52 overflow-auto rounded border border-border/60 bg-background/30">
+            {filteredProfiles.length === 0 ? (
+              <div className="p-3 text-sm text-muted-foreground">কোনো ইউজার পাওয়া যায়নি</div>
+            ) : filteredProfiles.map((p) => {
+              const paused = !!p.moderation && (p.moderation.permanently_paused || (!!p.moderation.paused_until && new Date(p.moderation.paused_until) > new Date()));
+              return (
+                <button key={p.id} onClick={() => setSelectedProfileId(p.id)} className={`w-full p-3 text-left text-sm hover:bg-accent/20 border-b border-border/40 last:border-b-0 ${selectedProfileId === p.id ? "bg-primary/10" : ""}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-foreground">{p.display_name}</span>
+                    {paused && <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs text-destructive">বন্ধ</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground">@{p.username}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedProfile && (
+            <div className="rounded-lg border border-border/60 p-3 space-y-3 bg-background/30">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div>
+                  <div className="font-semibold">{selectedProfile.display_name}</div>
+                  <div className="text-xs text-muted-foreground">@{selectedProfile.username} {selectedPaused ? "· আইডি বন্ধ" : ""}</div>
+                </div>
+                <Link to={`/u/${selectedProfile.username}`} target="_blank">
+                  <Button size="sm" variant="outline"><ExternalLink className="mr-1 h-3.5 w-3.5" /> দেয়াল দেখুন</Button>
+                </Link>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-2">
+                <Button size="sm" variant={pauseMode === "1d" ? "default" : "outline"} onClick={() => setPauseMode("1d")}>১ দিন</Button>
+                <Button size="sm" variant={pauseMode === "7d" ? "default" : "outline"} onClick={() => setPauseMode("7d")}>৭ দিন</Button>
+                <Button size="sm" variant={pauseMode === "permanent" ? "default" : "outline"} onClick={() => setPauseMode("permanent")}>স্থায়ী</Button>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <Input type="datetime-local" value={customPauseUntil} onChange={(e) => { setCustomPauseUntil(e.target.value); setPauseMode("custom"); }} className="h-9" />
+                <Input value={pauseReason} onChange={(e) => setPauseReason(e.target.value)} placeholder="কারণ (ঐচ্ছিক)" className="h-9" maxLength={500} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="destructive" disabled={userActionLoading} onClick={() => manageUser("pause")}><Ban className="mr-1 h-3.5 w-3.5" /> আইডি বন্ধ করুন</Button>
+                <Button size="sm" variant="outline" disabled={userActionLoading || !selectedPaused} onClick={() => manageUser("unpause")}><RotateCcw className="mr-1 h-3.5 w-3.5" /> চালু করুন</Button>
+                <Button size="sm" variant="destructive" disabled={userActionLoading} onClick={() => manageUser("delete")}><UserX className="mr-1 h-3.5 w-3.5" /> আইডি ডিলিট</Button>
+              </div>
+
+              <div className="border-t border-border pt-3 space-y-2">
+                <Textarea value={warningMsg} onChange={(e) => setWarningMsg(e.target.value)} placeholder="ইউজারকে সতর্কবার্তা লিখুন..." rows={2} maxLength={1000} />
+                <Button size="sm" disabled={userActionLoading || !warningMsg.trim()} onClick={() => manageUser("warn")}><SendHorizontal className="mr-1 h-3.5 w-3.5" /> সতর্কবার্তা পাঠান</Button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Megaphone className="h-4 w-4" /> ব্যবহারকারীদের নোটিফিকেশন পাঠান
           </div>
           <p className="text-xs text-muted-foreground">
