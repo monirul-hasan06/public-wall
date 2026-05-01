@@ -83,7 +83,13 @@ export default function AdminDashboard() {
       supabase.from("profiles").select("id, user_id, username, display_name, created_at").order("created_at", { ascending: false }).limit(1000),
       (supabase as any).from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
     ]);
-    const moderationByProfile = new Map((moderationRows ?? []).map((m: any) => [m.profile_id, m]));
+    const moderationByProfile = new Map<string, ProfileRow["moderation"]>(
+      (moderationRows ?? []).map((m: any) => [m.profile_id, {
+        permanently_paused: !!m.permanently_paused,
+        paused_until: m.paused_until ?? null,
+        reason: m.reason ?? null,
+      }])
+    );
     setProfiles(((profileRows ?? []) as ProfileRow[]).map((p) => ({ ...p, moderation: moderationByProfile.get(p.id) ?? null })));
   }, []);
 
