@@ -70,6 +70,39 @@ export default function AdminDashboard() {
   const [warningMsg, setWarningMsg] = useState("");
   const [userActionLoading, setUserActionLoading] = useState(false);
 
+  // Footer settings
+  const [footerText, setFooterText] = useState("");
+  const [footerShowCredit, setFooterShowCredit] = useState(true);
+  const [footerCopyright, setFooterCopyright] = useState("© {year} Deyal Likhon. All rights reserved.");
+  const [footerLoading, setFooterLoading] = useState(false);
+
+  const fetchFooter = useCallback(async () => {
+    const { data } = await (supabase as any)
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["footer_text", "footer_show_credit", "footer_copyright_text"]);
+    for (const row of (data ?? []) as Array<{ key: string; value: any }>) {
+      if (row.key === "footer_text") setFooterText(String(row.value ?? ""));
+      else if (row.key === "footer_show_credit") setFooterShowCredit(Boolean(row.value));
+      else if (row.key === "footer_copyright_text") setFooterCopyright(String(row.value ?? ""));
+    }
+  }, []);
+
+  const saveFooter = async () => {
+    setFooterLoading(true);
+    const { error } = await (supabase as any).from("site_settings").upsert(
+      [
+        { key: "footer_text", value: footerText },
+        { key: "footer_show_credit", value: footerShowCredit },
+        { key: "footer_copyright_text", value: footerCopyright },
+      ],
+      { onConflict: "key" }
+    );
+    setFooterLoading(false);
+    if (error) return toast.error("সংরক্ষণ ব্যর্থ");
+    toast.success("ফুটার আপডেট হয়েছে");
+  };
+
   const fetchNotifs = useCallback(async () => {
     const { data } = await (supabase as any)
       .from("notifications")
