@@ -12,12 +12,20 @@ import UserWallDashboard from "./pages/UserWallDashboard.tsx";
 import SetupWall from "./pages/SetupWall.tsx";
 import Profiles from "./pages/Profiles.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { useParams } from "react-router-dom";
 
 const SharedWallRedirect = () => {
   const params = new URLSearchParams(window.location.search);
   const username = params.get("wall")?.trim().toLowerCase();
   if (!username) return <Index />;
   return <Navigate to={`/u/${encodeURIComponent(username)}`} replace />;
+};
+
+const DeyalAliasRedirect = () => {
+  const { username } = useParams<{ username: string }>();
+  const safe = (username || "").trim().toLowerCase();
+  if (!safe) return <Navigate to="/" replace />;
+  return <Navigate to={`/u/${encodeURIComponent(safe)}`} replace />;
 };
 
 const queryClient = new QueryClient();
@@ -35,6 +43,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/setup-wall" element={<SetupWall />} />
             <Route path="/profiles" element={<Profiles />} />
+            <Route path="/deyal=:username" element={<DeyalAliasRedirect />} />
             <Route path="/u/:username" element={<UserWall />} />
             <Route path="/wall/:username/dashboard" element={<UserWallDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
