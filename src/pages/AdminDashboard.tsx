@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power, Ban, RotateCcw, SendHorizontal, Search, UserX, ExternalLink } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power, Ban, RotateCcw, SendHorizontal, Search, UserX, ExternalLink, Type } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 
@@ -68,6 +69,39 @@ export default function AdminDashboard() {
   const [pauseReason, setPauseReason] = useState("");
   const [warningMsg, setWarningMsg] = useState("");
   const [userActionLoading, setUserActionLoading] = useState(false);
+
+  // Footer settings
+  const [footerText, setFooterText] = useState("");
+  const [footerShowCredit, setFooterShowCredit] = useState(true);
+  const [footerCopyright, setFooterCopyright] = useState("© {year} Deyal Likhon. All rights reserved.");
+  const [footerLoading, setFooterLoading] = useState(false);
+
+  const fetchFooter = useCallback(async () => {
+    const { data } = await (supabase as any)
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["footer_text", "footer_show_credit", "footer_copyright_text"]);
+    for (const row of (data ?? []) as Array<{ key: string; value: any }>) {
+      if (row.key === "footer_text") setFooterText(String(row.value ?? ""));
+      else if (row.key === "footer_show_credit") setFooterShowCredit(Boolean(row.value));
+      else if (row.key === "footer_copyright_text") setFooterCopyright(String(row.value ?? ""));
+    }
+  }, []);
+
+  const saveFooter = async () => {
+    setFooterLoading(true);
+    const { error } = await (supabase as any).from("site_settings").upsert(
+      [
+        { key: "footer_text", value: footerText },
+        { key: "footer_show_credit", value: footerShowCredit },
+        { key: "footer_copyright_text", value: footerCopyright },
+      ],
+      { onConflict: "key" }
+    );
+    setFooterLoading(false);
+    if (error) return toast.error("সংরক্ষণ ব্যর্থ");
+    toast.success("ফুটার আপডেট হয়েছে");
+  };
 
   const fetchNotifs = useCallback(async () => {
     const { data } = await (supabase as any)
@@ -215,8 +249,9 @@ export default function AdminDashboard() {
       fetchPage(page);
       fetchNotifs();
       fetchProfiles();
+      fetchFooter();
     }
-  }, [page, fetchPage, fetchNotifs, fetchProfiles, isAdmin]);
+  }, [page, fetchPage, fetchNotifs, fetchProfiles, fetchFooter, isAdmin]);
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
@@ -482,6 +517,49 @@ export default function AdminDashboard() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Type className="h-4 w-4" /> ফুটার সম্পাদনা
+          </div>
+          <p className="text-xs text-muted-foreground">
+            সব পেজে ফুটার-এ যা দেখাতে চান তা এখান থেকে নিয়ন্ত্রণ করুন। কপিরাইটে <code className="font-mono">{"{year}"}</code> লিখলে চলতি বছর বসবে।
+          </p>
+
+          <div className="space-y-2">
+            <Label className="text-xs">ফুটার বার্তা (ঐচ্ছিক)</Label>
+            <Textarea
+              value={footerText}
+              onChange={(e) => setFooterText(e.target.value)}
+              placeholder="যেমন: সবাইকে ধন্যবাদ — আপনাদের ভালোবাসায় দেয়াল চলছে।"
+              rows={2}
+              maxLength={500}
+              className="bg-background/60"
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/30 p-3">
+            <div>
+              <div className="text-sm font-medium">"Made by — Monirul Hasan Mithu" দেখান</div>
+              <div className="text-xs text-muted-foreground">বন্ধ করলে ফুটার থেকে এই লাইনটি লুকানো থাকবে।</div>
+            </div>
+            <Switch checked={footerShowCredit} onCheckedChange={setFooterShowCredit} />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs">কপিরাইট লাইন</Label>
+            <Input
+              value={footerCopyright}
+              onChange={(e) => setFooterCopyright(e.target.value)}
+              placeholder="© {year} Deyal Likhon. All rights reserved."
+              maxLength={200}
+            />
+          </div>
+
+          <Button size="sm" onClick={saveFooter} disabled={footerLoading}>
+            {footerLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Save className="mr-1 h-3.5 w-3.5" /> সংরক্ষণ</>}
+          </Button>
         </section>
 
         <section className="space-y-3">

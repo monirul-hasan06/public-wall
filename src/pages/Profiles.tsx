@@ -7,6 +7,7 @@ import { FloatingControls } from "@/components/FloatingControls";
 import { ShareWallButton } from "@/components/ShareWallButton";
 import { Search, Home as HomeIcon, ExternalLink, Loader2, Users } from "lucide-react";
 import { getWallPath, getWallShareUrl } from "@/lib/wallLinks";
+import { SiteFooter } from "@/components/SiteFooter";
 
 interface Profile {
   id: string;
@@ -108,9 +109,7 @@ export default function Profiles() {
           </ul>
         )}
 
-        <footer className="mt-10 text-center text-xs text-[hsl(48_30%_75%)]/70">
-          {filtered.length} টি দেয়াল
-        </footer>
+        <SiteFooter extraTop={<div>{filtered.length} টি দেয়াল</div>} />
       </div>
     </main>
   );

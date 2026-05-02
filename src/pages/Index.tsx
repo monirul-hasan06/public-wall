@@ -9,7 +9,8 @@ import { FloatingControls } from "@/components/FloatingControls";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogIn, LogOut, Loader2, LayoutDashboard, EyeOff, Users, UserPlus, Home as HomeIcon, Compass } from "lucide-react";
+import { LogOut, Loader2, LayoutDashboard, EyeOff, UserPlus, Home as HomeIcon, Compass } from "lucide-react";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const PAGE_SIZE = 10;
 
@@ -172,37 +173,7 @@ const Index = () => {
           <WallPagination page={page} totalPages={totalPages} onChange={handlePageChange} />
         </div>
 
-        <footer className="mt-16 text-center text-xs text-[hsl(48_30%_75%)]/70 space-y-3">
-          <div>{total} টি পোস্ট দেয়ালে</div>
-          <div>
-            <a
-              href="https://www.facebook.com/share/g/1ChcTjRzFZ/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-blue-500 hover:text-blue-400 font-semibold underline-offset-4 hover:underline transition-colors"
-            >
-              <Users className="h-3.5 w-3.5" /> Join Deyal Likhon — Facebook Community
-            </a>
-          </div>
-          <div>
-            Made by{" "}
-            <a
-              href="https://www.facebook.com/monirul.hasan06"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-500 hover:text-green-400 font-semibold underline-offset-4 hover:underline"
-            >
-              Monirul Hasan Mithu
-            </a>
-          </div>
-          {!user && (
-            <div>
-              <Link to="/auth" className="inline-flex items-center text-[hsl(48_30%_75%)]/50 hover:text-[hsl(48_60%_92%)] transition-colors">
-                <LogIn className="mr-1 h-3 w-3" /> Admin Login
-              </Link>
-            </div>
-          )}
-        </footer>
+        <SiteFooter extraTop={<div>{total} টি পোস্ট দেয়ালে</div>} />
       </div>
     </main>
   );

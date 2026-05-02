@@ -12,6 +12,7 @@ import { Loader2, Megaphone, X, Copy, LayoutDashboard, Home } from "lucide-react
 import { ShareWallButton } from "@/components/ShareWallButton";
 import { censorText, containsProfanity } from "@/lib/profanity";
 import { getWallShareUrl } from "@/lib/wallLinks";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const PAGE_SIZE = 10;
 const MAX = 1000;
@@ -228,7 +229,7 @@ export default function UserWall() {
           <WallPagination page={page} totalPages={totalPages} onChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
         </div>
 
-        <footer className="mt-16 text-center text-xs text-[hsl(48_30%_75%)]/70">{total} টি পোস্ট</footer>
+        <SiteFooter extraTop={<div>{total} টি পোস্ট</div>} />
       </div>
     </main>
   );

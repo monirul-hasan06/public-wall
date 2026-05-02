@@ -4,5 +4,5 @@ export function getWallPath(username: string) {
 
 export function getWallShareUrl(username: string) {
   const safeUsername = encodeURIComponent(username.trim().toLowerCase());
-  return `${window.location.origin}/?wall=${safeUsername}`;
+  return `${window.location.origin}/deyal=${safeUsername}`;
 }
