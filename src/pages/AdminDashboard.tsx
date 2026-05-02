@@ -249,8 +249,9 @@ export default function AdminDashboard() {
       fetchPage(page);
       fetchNotifs();
       fetchProfiles();
+      fetchFooter();
     }
-  }, [page, fetchPage, fetchNotifs, fetchProfiles, isAdmin]);
+  }, [page, fetchPage, fetchNotifs, fetchProfiles, fetchFooter, isAdmin]);
 
   const startEdit = (p: Post) => {
     setEditingId(p.id);
