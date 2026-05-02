@@ -519,7 +519,49 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        <section className="space-y-3">
+        <section className="card-glass rounded-lg p-4 space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <Type className="h-4 w-4" /> ফুটার সম্পাদনা
+          </div>
+          <p className="text-xs text-muted-foreground">
+            সব পেজে ফুটার-এ যা দেখাতে চান তা এখান থেকে নিয়ন্ত্রণ করুন। কপিরাইটে <code className="font-mono">{"{year}"}</code> লিখলে চলতি বছর বসবে।
+          </p>
+
+          <div className="space-y-2">
+            <Label className="text-xs">ফুটার বার্তা (ঐচ্ছিক)</Label>
+            <Textarea
+              value={footerText}
+              onChange={(e) => setFooterText(e.target.value)}
+              placeholder="যেমন: সবাইকে ধন্যবাদ — আপনাদের ভালোবাসায় দেয়াল চলছে।"
+              rows={2}
+              maxLength={500}
+              className="bg-background/60"
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/30 p-3">
+            <div>
+              <div className="text-sm font-medium">"Made by — Monirul Hasan Mithu" দেখান</div>
+              <div className="text-xs text-muted-foreground">বন্ধ করলে ফুটার থেকে এই লাইনটি লুকানো থাকবে।</div>
+            </div>
+            <Switch checked={footerShowCredit} onCheckedChange={setFooterShowCredit} />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs">কপিরাইট লাইন</Label>
+            <Input
+              value={footerCopyright}
+              onChange={(e) => setFooterCopyright(e.target.value)}
+              placeholder="© {year} Deyal Likhon. All rights reserved."
+              maxLength={200}
+            />
+          </div>
+
+          <Button size="sm" onClick={saveFooter} disabled={footerLoading}>
+            {footerLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Save className="mr-1 h-3.5 w-3.5" /> সংরক্ষণ</>}
+          </Button>
+        </section>
+
           {loading ? (
             <div className="flex items-center justify-center py-16 text-[hsl(48_30%_75%)]">
               <Loader2 className="h-5 w-5 animate-spin mr-2" /> লোড হচ্ছে...
