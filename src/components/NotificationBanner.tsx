@@ -23,7 +23,7 @@ export function NotificationBanner() {
   const [dismissed, setDismissed] = useState<string[]>(getDismissed());
 
   const fetchActive = async () => {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("notifications")
       .select("id, message, created_at")
       .eq("active", true)
