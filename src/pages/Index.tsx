@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LogOut, Loader2, LayoutDashboard, EyeOff, UserPlus, Home as HomeIcon, Compass } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
+import { getDeyalDashboardPath, getDeyalPath } from "@/lib/wallLinks";
 
 const PAGE_SIZE = 10;
 
@@ -113,12 +114,12 @@ const Index = () => {
               )}
               {myUsername && (
                 <>
-                  <Link to={`/u/${myUsername}`}>
+                  <Link to={getDeyalPath(myUsername)}>
                     <Button size="sm" variant="outline" className="bg-primary/10">
                       <HomeIcon className="mr-1.5 h-4 w-4" /> আপনার দেয়াল
                     </Button>
                   </Link>
-                  <Link to={`/wall/${myUsername}/dashboard`}>
+                  <Link to={getDeyalDashboardPath(myUsername)}>
                     <Button size="sm" variant="outline">
                       <LayoutDashboard className="mr-1.5 h-4 w-4" /> ড্যাশবোর্ড
                     </Button>

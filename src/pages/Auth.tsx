@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Shield, UserPlus, LogIn } from "lucide-react";
+import { getDeyalDashboardPath, getDeyalPath } from "@/lib/wallLinks";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -27,10 +28,10 @@ export default function Auth() {
     const { data: role } = await supabase
       .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
     if (role) return navigate("/admin");
-    // Has profile? -> own wall dashboard
+    // Has profile? -> own deyal dashboard
     const { data: profile } = await supabase
       .from("profiles").select("username").eq("user_id", user.id).maybeSingle();
-    if (profile?.username) return navigate(`/wall/${profile.username}/dashboard`);
+    if (profile?.username) return navigate(getDeyalDashboardPath(profile.username));
     navigate("/setup-wall");
   };
 
@@ -118,7 +119,7 @@ export default function Auth() {
           <TabsContent value="signup">
             <h1 className="text-2xl font-semibold mb-1">নিজের দেয়াল খুলুন</h1>
             <p className="text-sm text-muted-foreground mb-5">
-              আপনার নিজের দেয়াল পাবেন: <code>/u/username</code> — লিংক শেয়ার করুন, বন্ধুরা এসে লিখবে।
+              আপনার নিজের দেয়াল পাবেন: <code>/deyal/username</code> — লিংক শেয়ার করুন, বন্ধুরা এসে লিখবে।
             </p>
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
@@ -128,7 +129,7 @@ export default function Auth() {
               <div className="space-y-2">
                 <Label htmlFor="uname">ইউজারনেম</Label>
                 <Input id="uname" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} required placeholder="যেমন: monirul" pattern="[a-z0-9_]{3,30}" />
-                <p className="text-xs text-muted-foreground">আপনার লিংক হবে: <span className="text-primary">/u/{username || "username"}</span></p>
+                <p className="text-xs text-muted-foreground">আপনার লিংক হবে: <span className="text-primary">{getDeyalPath(username || "username")}</span></p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="semail">ইমেইল</Label>

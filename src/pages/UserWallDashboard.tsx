@@ -13,7 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 import { censorText } from "@/lib/profanity";
 import { ShareWallButton } from "@/components/ShareWallButton";
-import { getWallPath, getWallShareUrl } from "@/lib/wallLinks";
+import { getDeyalPath, getDeyalShareUrl } from "@/lib/wallLinks";
 
 const PAGE_SIZE = 25;
 
@@ -54,8 +54,8 @@ export default function UserWallDashboard() {
   const [moderation, setModeration] = useState<Moderation | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const shareUrl = profile ? getWallShareUrl(profile.username) : "";
-  const wallPath = profile ? getWallPath(profile.username) : "/";
+  const shareUrl = profile ? getDeyalShareUrl(profile.username) : "";
+  const wallPath = profile ? getDeyalPath(profile.username) : "/";
   const isPaused = !!moderation && (moderation.permanently_paused || (!!moderation.paused_until && new Date(moderation.paused_until) > new Date()));
 
   useEffect(() => { document.title = "আপনার ড্যাশবোর্ড — দেয়াল লিখন"; }, []);
@@ -71,8 +71,8 @@ export default function UserWallDashboard() {
       setProfile(data as Profile);
       setDisplayName(data.display_name);
       const [{ data: warningRows }, { data: modRow }] = await Promise.all([
-        (supabase as any).from("user_warnings").select("id, message, created_at, read_at").eq("profile_id", data.id).order("created_at", { ascending: false }).limit(20),
-        (supabase as any).from("user_moderation").select("permanently_paused, paused_until, reason").eq("profile_id", data.id).maybeSingle(),
+        supabase.from("user_warnings").select("id, message, created_at, read_at").eq("profile_id", data.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("user_moderation").select("permanently_paused, paused_until, reason").eq("profile_id", data.id).maybeSingle(),
       ]);
       setWarnings((warningRows ?? []) as WarningItem[]);
       setModeration((modRow ?? null) as Moderation | null);
@@ -100,7 +100,10 @@ export default function UserWallDashboard() {
   }, [profile, page, fetchPage, fetchNotifs]);
 
   const toggleSelect = (id: string) => {
-    const n = new Set(selected); n.has(id) ? n.delete(id) : n.add(id); setSelected(n);
+    const n = new Set(selected);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    setSelected(n);
   };
   const selectAll = () => setSelected(new Set(posts.map(p => p.id)));
   const clearSel = () => setSelected(new Set());
@@ -240,7 +243,7 @@ export default function UserWallDashboard() {
 
         <div className="card-glass rounded-2xl p-6">
           <h1 className="text-2xl font-semibold mb-1">{profile.display_name} এর ড্যাশবোর্ড</h1>
-          <p className="text-sm text-muted-foreground">আপনার দেয়াল: <span className="text-primary">/u/{username}</span></p>
+          <p className="text-sm text-muted-foreground">আপনার দেয়াল: <span className="text-primary">{getDeyalPath(username || "")}</span></p>
         </div>
 
         {/* Profile + password */}

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power, Ban, RotateCcw, SendHorizontal, Search, UserX, ExternalLink, Type } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
+import { getDeyalPath } from "@/lib/wallLinks";
 
 interface Post {
   id: string;
@@ -27,6 +28,11 @@ interface ProfileRow {
   created_at: string;
   moderation?: { permanently_paused: boolean; paused_until: string | null; reason: string | null } | null;
 }
+
+type SiteSettingKey = "footer_text" | "footer_show_credit" | "footer_copyright_text";
+type SiteSettingRow = { key: SiteSettingKey; value: string | boolean | null };
+type ModerationRow = { profile_id: string; permanently_paused: boolean; paused_until: string | null; reason: string | null };
+type FunctionResult = { error?: string } | null;
 
 const PAGE_SIZE = 25;
 
@@ -77,11 +83,11 @@ export default function AdminDashboard() {
   const [footerLoading, setFooterLoading] = useState(false);
 
   const fetchFooter = useCallback(async () => {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("site_settings")
       .select("key, value")
       .in("key", ["footer_text", "footer_show_credit", "footer_copyright_text"]);
-    for (const row of (data ?? []) as Array<{ key: string; value: any }>) {
+    for (const row of (data ?? []) as SiteSettingRow[]) {
       if (row.key === "footer_text") setFooterText(String(row.value ?? ""));
       else if (row.key === "footer_show_credit") setFooterShowCredit(Boolean(row.value));
       else if (row.key === "footer_copyright_text") setFooterCopyright(String(row.value ?? ""));
@@ -90,7 +96,7 @@ export default function AdminDashboard() {
 
   const saveFooter = async () => {
     setFooterLoading(true);
-    const { error } = await (supabase as any).from("site_settings").upsert(
+    const { error } = await supabase.from("site_settings").upsert(
       [
         { key: "footer_text", value: footerText },
         { key: "footer_show_credit", value: footerShowCredit },
@@ -104,7 +110,7 @@ export default function AdminDashboard() {
   };
 
   const fetchNotifs = useCallback(async () => {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("notifications")
       .select("id, message, created_at, active")
       .order("created_at", { ascending: false })
@@ -115,10 +121,10 @@ export default function AdminDashboard() {
   const fetchProfiles = useCallback(async () => {
     const [{ data: profileRows }, { data: moderationRows }] = await Promise.all([
       supabase.from("profiles").select("id, user_id, username, display_name, created_at").order("created_at", { ascending: false }).limit(1000),
-      (supabase as any).from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
+      supabase.from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
     ]);
     const moderationByProfile = new Map<string, ProfileRow["moderation"]>(
-      (moderationRows ?? []).map((m: any) => [m.profile_id, {
+      ((moderationRows ?? []) as ModerationRow[]).map((m) => [m.profile_id, {
         permanently_paused: !!m.permanently_paused,
         paused_until: m.paused_until ?? null,
         reason: m.reason ?? null,
@@ -131,7 +137,7 @@ export default function AdminDashboard() {
     const msg = notifMsg.trim();
     if (!msg) return toast.error("খালি রাখা যাবে না");
     setNotifLoading(true);
-    const { error } = await (supabase as any).from("notifications").insert({ message: msg, active: true });
+    const { error } = await supabase.from("notifications").insert({ message: msg, active: true });
     setNotifLoading(false);
     if (error) return toast.error("পাঠানো গেল না");
     toast.success("ঘোষণা পাঠানো হয়েছে");
@@ -140,14 +146,14 @@ export default function AdminDashboard() {
   };
 
   const toggleNotif = async (n: Notif) => {
-    const { error } = await (supabase as any).from("notifications").update({ active: !n.active }).eq("id", n.id);
+    const { error } = await supabase.from("notifications").update({ active: !n.active }).eq("id", n.id);
     if (error) return toast.error("পরিবর্তন ব্যর্থ");
     fetchNotifs();
   };
 
   const deleteNotif = async (id: string) => {
     if (!confirm("এই ঘোষণা মুছবেন?")) return;
-    const { error } = await (supabase as any).from("notifications").delete().eq("id", id);
+    const { error } = await supabase.from("notifications").delete().eq("id", id);
     if (error) return toast.error("মুছে ফেলা গেল না");
     toast.success("মুছে ফেলা হয়েছে");
     fetchNotifs();
@@ -161,7 +167,8 @@ export default function AdminDashboard() {
       body: { currentPassword: currentPwd, newPassword: newPwd },
     });
     setPwdLoading(false);
-    if (error || (data as any)?.error) return toast.error((data as any)?.error || "পরিবর্তন ব্যর্থ");
+    const result = data as FunctionResult;
+    if (error || result?.error) return toast.error(result?.error || "পরিবর্তন ব্যর্থ");
     toast.success("পাসওয়ার্ড পরিবর্তন হয়েছে");
     setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
   };
@@ -172,7 +179,8 @@ export default function AdminDashboard() {
     setAddAdminLoading(true);
     const { data, error } = await supabase.functions.invoke("add-admin", { body: { email } });
     setAddAdminLoading(false);
-    if (error || (data as any)?.error) return toast.error((data as any)?.error || "অ্যাডমিন যোগ ব্যর্থ");
+    const result = data as FunctionResult;
+    if (error || result?.error) return toast.error(result?.error || "অ্যাডমিন যোগ ব্যর্থ");
     toast.success(`${email} এখন অ্যাডমিন (ডিফল্ট পাসওয়ার্ড: admin_pass06)`);
     setNewAdminEmail("");
   };
@@ -211,7 +219,8 @@ export default function AdminDashboard() {
       },
     });
     setUserActionLoading(false);
-    if (error || (data as any)?.error) return toast.error((data as any)?.error || "কাজটি সম্পন্ন হলো না");
+    const result = data as FunctionResult;
+    if (error || result?.error) return toast.error(result?.error || "কাজটি সম্পন্ন হলো না");
     toast.success("সম্পন্ন হয়েছে");
     if (action === "warn") setWarningMsg("");
     if (action === "pause" || action === "unpause") setPauseReason("");
@@ -280,7 +289,8 @@ export default function AdminDashboard() {
   const toggleSelect = (id: string) => {
     setSelected((s) => {
       const n = new Set(s);
-      n.has(id) ? n.delete(id) : n.add(id);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
       return n;
     });
   };
@@ -450,7 +460,7 @@ export default function AdminDashboard() {
                   <div className="font-semibold">{selectedProfile.display_name}</div>
                   <div className="text-xs text-muted-foreground">@{selectedProfile.username} {selectedPaused ? "· আইডি বন্ধ" : ""}</div>
                 </div>
-                <Link to={`/u/${selectedProfile.username}`} target="_blank">
+                <Link to={getDeyalPath(selectedProfile.username)} target="_blank">
                   <Button size="sm" variant="outline"><ExternalLink className="mr-1 h-3.5 w-3.5" /> দেয়াল দেখুন</Button>
                 </Link>
               </div>

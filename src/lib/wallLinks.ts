@@ -1,8 +1,16 @@
-export function getWallPath(username: string) {
-  return `/u/${encodeURIComponent(username.trim().toLowerCase())}`;
+const cleanUsername = (username: string) => encodeURIComponent(username.trim().toLowerCase());
+
+export function getDeyalPath(username: string) {
+  return `/deyal/${cleanUsername(username)}`;
 }
 
-export function getWallShareUrl(username: string) {
-  const safeUsername = encodeURIComponent(username.trim().toLowerCase());
-  return `${window.location.origin}/deyal=${safeUsername}`;
+export function getDeyalDashboardPath(username: string) {
+  return `${getDeyalPath(username)}/dashboard`;
 }
+
+export function getDeyalShareUrl(username: string) {
+  return `${window.location.origin}${getDeyalPath(username)}`;
+}
+
+export const getWallPath = getDeyalPath;
+export const getWallShareUrl = getDeyalShareUrl;

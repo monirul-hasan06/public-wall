@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FloatingControls } from "@/components/FloatingControls";
 import { ShareWallButton } from "@/components/ShareWallButton";
 import { Search, Home as HomeIcon, ExternalLink, Loader2, Users } from "lucide-react";
-import { getWallPath, getWallShareUrl } from "@/lib/wallLinks";
+import { getDeyalPath, getDeyalShareUrl } from "@/lib/wallLinks";
 import { SiteFooter } from "@/components/SiteFooter";
 
 interface Profile {
@@ -84,8 +84,8 @@ export default function Profiles() {
         ) : (
           <ul className="space-y-3">
             {filtered.map((p) => {
-              const url = getWallShareUrl(p.username);
-              const path = getWallPath(p.username);
+              const url = getDeyalShareUrl(p.username);
+              const path = getDeyalPath(p.username);
               return (
                 <li
                   key={p.id}

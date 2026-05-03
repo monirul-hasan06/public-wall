@@ -16,43 +16,47 @@ import { useParams } from "react-router-dom";
 
 const SharedWallRedirect = () => {
   const params = new URLSearchParams(window.location.search);
-  const username = params.get("wall")?.trim().toLowerCase();
+  const username = (params.get("deyal") || params.get("wall"))?.trim().toLowerCase();
   if (!username) return <Index />;
-  return <Navigate to={`/u/${encodeURIComponent(username)}`} replace />;
+  return <Navigate to={`/deyal/${encodeURIComponent(username)}`} replace />;
 };
 
 const DeyalAliasRedirect = () => {
   const { username } = useParams<{ username: string }>();
   const safe = (username || "").trim().toLowerCase();
   if (!safe) return <Navigate to="/" replace />;
-  return <Navigate to={`/u/${encodeURIComponent(safe)}`} replace />;
+  return <Navigate to={`/deyal/${encodeURIComponent(safe)}`} replace />;
 };
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<SharedWallRedirect />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/setup-wall" element={<SetupWall />} />
-            <Route path="/profiles" element={<Profiles />} />
-            <Route path="/deyal=:username" element={<DeyalAliasRedirect />} />
-            <Route path="/u/:username" element={<UserWall />} />
-            <Route path="/wall/:username/dashboard" element={<UserWallDashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <div className="min-h-screen">
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<SharedWallRedirect />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/setup-wall" element={<SetupWall />} />
+              <Route path="/profiles" element={<Profiles />} />
+              <Route path="/deyal=:username" element={<DeyalAliasRedirect />} />
+              <Route path="/deyal/:username" element={<UserWall />} />
+              <Route path="/deyal/:username/dashboard" element={<UserWallDashboard />} />
+              <Route path="/u/:username" element={<UserWall />} />
+              <Route path="/wall/:username/dashboard" element={<UserWallDashboard />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </div>
 );
 
 export default App;
