@@ -121,10 +121,10 @@ export default function AdminDashboard() {
   const fetchProfiles = useCallback(async () => {
     const [{ data: profileRows }, { data: moderationRows }] = await Promise.all([
       supabase.from("profiles").select("id, user_id, username, display_name, created_at").order("created_at", { ascending: false }).limit(1000),
-      (supabase as any).from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
+      supabase.from("user_moderation").select("profile_id, permanently_paused, paused_until, reason"),
     ]);
     const moderationByProfile = new Map<string, ProfileRow["moderation"]>(
-      (moderationRows ?? []).map((m: any) => [m.profile_id, {
+      ((moderationRows ?? []) as ModerationRow[]).map((m) => [m.profile_id, {
         permanently_paused: !!m.permanently_paused,
         paused_until: m.paused_until ?? null,
         reason: m.reason ?? null,
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
     const msg = notifMsg.trim();
     if (!msg) return toast.error("খালি রাখা যাবে না");
     setNotifLoading(true);
-    const { error } = await (supabase as any).from("notifications").insert({ message: msg, active: true });
+    const { error } = await supabase.from("notifications").insert({ message: msg, active: true });
     setNotifLoading(false);
     if (error) return toast.error("পাঠানো গেল না");
     toast.success("ঘোষণা পাঠানো হয়েছে");
@@ -146,14 +146,14 @@ export default function AdminDashboard() {
   };
 
   const toggleNotif = async (n: Notif) => {
-    const { error } = await (supabase as any).from("notifications").update({ active: !n.active }).eq("id", n.id);
+    const { error } = await supabase.from("notifications").update({ active: !n.active }).eq("id", n.id);
     if (error) return toast.error("পরিবর্তন ব্যর্থ");
     fetchNotifs();
   };
 
   const deleteNotif = async (id: string) => {
     if (!confirm("এই ঘোষণা মুছবেন?")) return;
-    const { error } = await (supabase as any).from("notifications").delete().eq("id", id);
+    const { error } = await supabase.from("notifications").delete().eq("id", id);
     if (error) return toast.error("মুছে ফেলা গেল না");
     toast.success("মুছে ফেলা হয়েছে");
     fetchNotifs();
