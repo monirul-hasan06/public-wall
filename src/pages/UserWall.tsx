@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Loader2, Megaphone, X, Copy, LayoutDashboard, Home } from "lucide-react";
 import { ShareWallButton } from "@/components/ShareWallButton";
 import { censorText, containsProfanity } from "@/lib/profanity";
-import { getWallShareUrl } from "@/lib/wallLinks";
+import { getDeyalDashboardPath, getDeyalShareUrl } from "@/lib/wallLinks";
 import { SiteFooter } from "@/components/SiteFooter";
 
 const PAGE_SIZE = 10;
@@ -45,7 +45,7 @@ export default function UserWall() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const isOwner = !!user && !!profile && user.id === profile.user_id;
-  const shareUrl = profile ? getWallShareUrl(profile.username) : "";
+  const shareUrl = profile ? getDeyalShareUrl(profile.username) : "";
   const isPaused = !!moderation && (moderation.permanently_paused || (!!moderation.paused_until && new Date(moderation.paused_until) > new Date()));
 
   useEffect(() => {
@@ -157,7 +157,7 @@ export default function UserWall() {
             />
             <Link to="/"><Button size="sm" variant="ghost" className="text-[hsl(48_30%_75%)]"><Home className="mr-1.5 h-4 w-4" /> মূল দেয়াল</Button></Link>
             {isOwner && (
-              <Link to={`/wall/${profile?.username}/dashboard`}>
+              <Link to={getDeyalDashboardPath(profile?.username || "")}>
                 <Button size="sm" variant="outline"><LayoutDashboard className="mr-1.5 h-4 w-4" /> আপনার ড্যাশবোর্ড</Button>
               </Link>
             )}
