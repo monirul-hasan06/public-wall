@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { getDeyalDashboardPath, getDeyalPath } from "@/lib/wallLinks";
 
 export default function SetupWall() {
   const { user, loading } = useAuth();
@@ -21,7 +22,7 @@ export default function SetupWall() {
     document.title = "দেয়াল তৈরি করুন";
     (async () => {
       const { data } = await supabase.from("profiles").select("username").eq("user_id", user.id).maybeSingle();
-      if (data?.username) navigate(`/wall/${data.username}/dashboard`);
+        if (data?.username) navigate(getDeyalDashboardPath(data.username));
     })();
   }, [user, loading, navigate]);
 
@@ -38,7 +39,7 @@ export default function SetupWall() {
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("দেয়াল তৈরি হয়েছে!");
-    navigate(`/wall/${u}/dashboard`);
+    navigate(getDeyalDashboardPath(u));
   };
 
   return (
@@ -55,7 +56,7 @@ export default function SetupWall() {
           <div className="space-y-2">
             <Label>ইউজারনেম</Label>
             <Input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} required pattern="[a-z0-9_]{3,30}" />
-            <p className="text-xs text-muted-foreground">লিংক: <span className="text-primary">/u/{username || "username"}</span></p>
+            <p className="text-xs text-muted-foreground">লিংক: <span className="text-primary">{getDeyalPath(username || "username")}</span></p>
           </div>
           <Button type="submit" disabled={submitting} className="w-full">{submitting ? "..." : "তৈরি করুন"}</Button>
         </form>
