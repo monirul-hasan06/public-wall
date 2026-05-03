@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2, Pencil, Save, Trash2, X, CalendarRange, ShieldAlert, KeyRound, UserPlus, Megaphone, Power, Ban, RotateCcw, SendHorizontal, Search, UserX, ExternalLink, Type } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
+import { getDeyalPath } from "@/lib/wallLinks";
 
 interface Post {
   id: string;
@@ -450,7 +451,7 @@ export default function AdminDashboard() {
                   <div className="font-semibold">{selectedProfile.display_name}</div>
                   <div className="text-xs text-muted-foreground">@{selectedProfile.username} {selectedPaused ? "· আইডি বন্ধ" : ""}</div>
                 </div>
-                <Link to={`/u/${selectedProfile.username}`} target="_blank">
+                <Link to={getDeyalPath(selectedProfile.username)} target="_blank">
                   <Button size="sm" variant="outline"><ExternalLink className="mr-1 h-3.5 w-3.5" /> দেয়াল দেখুন</Button>
                 </Link>
               </div>
