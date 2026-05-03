@@ -31,7 +31,7 @@ export function censorText(input: string): string {
     // Escape regex specials
     const esc = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     // For English ASCII words use word boundary; for Bangla just match.
-    const isAscii = /^[\x00-\x7F\s]+$/.test(w);
+    const isAscii = /^[\u0001-\u007F\s]+$/.test(w);
     const re = isAscii
       ? new RegExp(`\\b${esc}\\b`, "gi")
       : new RegExp(esc, "gi");
