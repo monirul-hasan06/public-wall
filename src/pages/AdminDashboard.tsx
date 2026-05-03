@@ -29,6 +29,11 @@ interface ProfileRow {
   moderation?: { permanently_paused: boolean; paused_until: string | null; reason: string | null } | null;
 }
 
+type SiteSettingKey = "footer_text" | "footer_show_credit" | "footer_copyright_text";
+type SiteSettingRow = { key: SiteSettingKey; value: string | boolean | null };
+type ModerationRow = { profile_id: string; permanently_paused: boolean; paused_until: string | null; reason: string | null };
+type FunctionResult = { error?: string } | null;
+
 const PAGE_SIZE = 25;
 
 export default function AdminDashboard() {
@@ -78,11 +83,11 @@ export default function AdminDashboard() {
   const [footerLoading, setFooterLoading] = useState(false);
 
   const fetchFooter = useCallback(async () => {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("site_settings")
       .select("key, value")
       .in("key", ["footer_text", "footer_show_credit", "footer_copyright_text"]);
-    for (const row of (data ?? []) as Array<{ key: string; value: any }>) {
+    for (const row of (data ?? []) as SiteSettingRow[]) {
       if (row.key === "footer_text") setFooterText(String(row.value ?? ""));
       else if (row.key === "footer_show_credit") setFooterShowCredit(Boolean(row.value));
       else if (row.key === "footer_copyright_text") setFooterCopyright(String(row.value ?? ""));
@@ -91,7 +96,7 @@ export default function AdminDashboard() {
 
   const saveFooter = async () => {
     setFooterLoading(true);
-    const { error } = await (supabase as any).from("site_settings").upsert(
+    const { error } = await supabase.from("site_settings").upsert(
       [
         { key: "footer_text", value: footerText },
         { key: "footer_show_credit", value: footerShowCredit },
@@ -105,7 +110,7 @@ export default function AdminDashboard() {
   };
 
   const fetchNotifs = useCallback(async () => {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("notifications")
       .select("id, message, created_at, active")
       .order("created_at", { ascending: false })
