@@ -13,7 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 import { FloatingControls } from "@/components/FloatingControls";
 import { censorText } from "@/lib/profanity";
 import { ShareWallButton } from "@/components/ShareWallButton";
-import { getWallPath, getWallShareUrl } from "@/lib/wallLinks";
+import { getDeyalPath, getDeyalShareUrl } from "@/lib/wallLinks";
 
 const PAGE_SIZE = 25;
 
@@ -54,8 +54,8 @@ export default function UserWallDashboard() {
   const [moderation, setModeration] = useState<Moderation | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const shareUrl = profile ? getWallShareUrl(profile.username) : "";
-  const wallPath = profile ? getWallPath(profile.username) : "/";
+  const shareUrl = profile ? getDeyalShareUrl(profile.username) : "";
+  const wallPath = profile ? getDeyalPath(profile.username) : "/";
   const isPaused = !!moderation && (moderation.permanently_paused || (!!moderation.paused_until && new Date(moderation.paused_until) > new Date()));
 
   useEffect(() => { document.title = "আপনার ড্যাশবোর্ড — দেয়াল লিখন"; }, []);
@@ -240,7 +240,7 @@ export default function UserWallDashboard() {
 
         <div className="card-glass rounded-2xl p-6">
           <h1 className="text-2xl font-semibold mb-1">{profile.display_name} এর ড্যাশবোর্ড</h1>
-          <p className="text-sm text-muted-foreground">আপনার দেয়াল: <span className="text-primary">/u/{username}</span></p>
+          <p className="text-sm text-muted-foreground">আপনার দেয়াল: <span className="text-primary">{getDeyalPath(username || "")}</span></p>
         </div>
 
         {/* Profile + password */}
