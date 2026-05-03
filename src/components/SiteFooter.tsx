@@ -10,6 +10,11 @@ interface FooterSettings {
   footer_copyright_text: string;
 }
 
+type SiteSettingRow = {
+  key: keyof FooterSettings;
+  value: string | boolean | null;
+};
+
 const DEFAULTS: FooterSettings = {
   footer_text: "",
   footer_show_credit: true,
@@ -21,14 +26,14 @@ export function SiteFooter({ extraTop }: { extraTop?: React.ReactNode }) {
   const [settings, setSettings] = useState<FooterSettings>(DEFAULTS);
 
   useEffect(() => {
-    (supabase as any)
+    supabase
       .from("site_settings")
       .select("key, value")
       .in("key", ["footer_text", "footer_show_credit", "footer_copyright_text"])
-      .then(({ data }: { data: Array<{ key: string; value: any }> | null }) => {
+      .then(({ data }) => {
         if (!data) return;
         const next = { ...DEFAULTS };
-        for (const row of data) {
+        for (const row of data as SiteSettingRow[]) {
           if (row.key === "footer_text") next.footer_text = String(row.value ?? "");
           else if (row.key === "footer_show_credit") next.footer_show_credit = Boolean(row.value);
           else if (row.key === "footer_copyright_text")
