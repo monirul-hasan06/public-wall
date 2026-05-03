@@ -71,8 +71,8 @@ export default function UserWallDashboard() {
       setProfile(data as Profile);
       setDisplayName(data.display_name);
       const [{ data: warningRows }, { data: modRow }] = await Promise.all([
-        (supabase as any).from("user_warnings").select("id, message, created_at, read_at").eq("profile_id", data.id).order("created_at", { ascending: false }).limit(20),
-        (supabase as any).from("user_moderation").select("permanently_paused, paused_until, reason").eq("profile_id", data.id).maybeSingle(),
+        supabase.from("user_warnings").select("id, message, created_at, read_at").eq("profile_id", data.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("user_moderation").select("permanently_paused, paused_until, reason").eq("profile_id", data.id).maybeSingle(),
       ]);
       setWarnings((warningRows ?? []) as WarningItem[]);
       setModeration((modRow ?? null) as Moderation | null);
@@ -100,7 +100,10 @@ export default function UserWallDashboard() {
   }, [profile, page, fetchPage, fetchNotifs]);
 
   const toggleSelect = (id: string) => {
-    const n = new Set(selected); n.has(id) ? n.delete(id) : n.add(id); setSelected(n);
+    const n = new Set(selected);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    setSelected(n);
   };
   const selectAll = () => setSelected(new Set(posts.map(p => p.id)));
   const clearSel = () => setSelected(new Set());
