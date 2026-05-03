@@ -167,7 +167,8 @@ export default function AdminDashboard() {
       body: { currentPassword: currentPwd, newPassword: newPwd },
     });
     setPwdLoading(false);
-    if (error || (data as any)?.error) return toast.error((data as any)?.error || "পরিবর্তন ব্যর্থ");
+    const result = data as FunctionResult;
+    if (error || result?.error) return toast.error(result?.error || "পরিবর্তন ব্যর্থ");
     toast.success("পাসওয়ার্ড পরিবর্তন হয়েছে");
     setCurrentPwd(""); setNewPwd(""); setConfirmPwd("");
   };
@@ -178,7 +179,8 @@ export default function AdminDashboard() {
     setAddAdminLoading(true);
     const { data, error } = await supabase.functions.invoke("add-admin", { body: { email } });
     setAddAdminLoading(false);
-    if (error || (data as any)?.error) return toast.error((data as any)?.error || "অ্যাডমিন যোগ ব্যর্থ");
+    const result = data as FunctionResult;
+    if (error || result?.error) return toast.error(result?.error || "অ্যাডমিন যোগ ব্যর্থ");
     toast.success(`${email} এখন অ্যাডমিন (ডিফল্ট পাসওয়ার্ড: admin_pass06)`);
     setNewAdminEmail("");
   };
@@ -217,7 +219,8 @@ export default function AdminDashboard() {
       },
     });
     setUserActionLoading(false);
-    if (error || (data as any)?.error) return toast.error((data as any)?.error || "কাজটি সম্পন্ন হলো না");
+    const result = data as FunctionResult;
+    if (error || result?.error) return toast.error(result?.error || "কাজটি সম্পন্ন হলো না");
     toast.success("সম্পন্ন হয়েছে");
     if (action === "warn") setWarningMsg("");
     if (action === "pause" || action === "unpause") setPauseReason("");
