@@ -64,7 +64,7 @@ export default function UserWall() {
         .select("id, username, display_name, user_id").ilike("username", uname).maybeSingle();
       if (error || !data) { setNotFound(true); setLoading(false); return; }
       setProfile(data as Profile);
-      const { data: mod } = await (supabase as any)
+      const { data: mod } = await supabase
         .from("user_moderation")
         .select("permanently_paused, paused_until, reason")
         .eq("profile_id", data.id)
