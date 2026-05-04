@@ -1,0 +1,1 @@
+INSERT INTO public.site_settings (key, value) VALUES ('footer_show_community', 'true'::jsonb) ON CONFLICT (key) DO NOTHING;
