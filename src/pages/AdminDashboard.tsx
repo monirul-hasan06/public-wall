@@ -29,7 +29,7 @@ interface ProfileRow {
   moderation?: { permanently_paused: boolean; paused_until: string | null; reason: string | null } | null;
 }
 
-type SiteSettingKey = "footer_text" | "footer_show_credit" | "footer_copyright_text";
+type SiteSettingKey = "footer_text" | "footer_show_credit" | "footer_show_community" | "footer_copyright_text";
 type SiteSettingRow = { key: SiteSettingKey; value: string | boolean | null };
 type ModerationRow = { profile_id: string; permanently_paused: boolean; paused_until: string | null; reason: string | null };
 type FunctionResult = { error?: string } | null;
