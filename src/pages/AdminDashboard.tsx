@@ -29,7 +29,7 @@ interface ProfileRow {
   moderation?: { permanently_paused: boolean; paused_until: string | null; reason: string | null } | null;
 }
 
-type SiteSettingKey = "footer_text" | "footer_show_credit" | "footer_copyright_text";
+type SiteSettingKey = "footer_text" | "footer_show_credit" | "footer_show_community" | "footer_copyright_text";
 type SiteSettingRow = { key: SiteSettingKey; value: string | boolean | null };
 type ModerationRow = { profile_id: string; permanently_paused: boolean; paused_until: string | null; reason: string | null };
 type FunctionResult = { error?: string } | null;
@@ -79,6 +79,7 @@ export default function AdminDashboard() {
   // Footer settings
   const [footerText, setFooterText] = useState("");
   const [footerShowCredit, setFooterShowCredit] = useState(true);
+  const [footerShowCommunity, setFooterShowCommunity] = useState(true);
   const [footerCopyright, setFooterCopyright] = useState("© {year} Deyal Likhon. All rights reserved.");
   const [footerLoading, setFooterLoading] = useState(false);
 
@@ -86,10 +87,11 @@ export default function AdminDashboard() {
     const { data } = await supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["footer_text", "footer_show_credit", "footer_copyright_text"]);
+      .in("key", ["footer_text", "footer_show_credit", "footer_show_community", "footer_copyright_text"]);
     for (const row of (data ?? []) as SiteSettingRow[]) {
       if (row.key === "footer_text") setFooterText(String(row.value ?? ""));
       else if (row.key === "footer_show_credit") setFooterShowCredit(Boolean(row.value));
+      else if (row.key === "footer_show_community") setFooterShowCommunity(Boolean(row.value));
       else if (row.key === "footer_copyright_text") setFooterCopyright(String(row.value ?? ""));
     }
   }, []);
@@ -100,6 +102,7 @@ export default function AdminDashboard() {
       [
         { key: "footer_text", value: footerText },
         { key: "footer_show_credit", value: footerShowCredit },
+        { key: "footer_show_community", value: footerShowCommunity },
         { key: "footer_copyright_text", value: footerCopyright },
       ],
       { onConflict: "key" }
@@ -551,7 +554,15 @@ export default function AdminDashboard() {
 
           <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/30 p-3">
             <div>
-              <div className="text-sm font-medium">"Made by — Monirul Hasan Mithu" দেখান</div>
+              <div className="text-sm font-medium">Facebook কমিউনিটি লিংক দেখান</div>
+              <div className="text-xs text-muted-foreground">"Join our community on Facebook" লাইনটি দেখাবে কিনা।</div>
+            </div>
+            <Switch checked={footerShowCommunity} onCheckedChange={setFooterShowCommunity} />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/30 p-3">
+            <div>
+              <div className="text-sm font-medium">"Made by — TechCanvix" দেখান</div>
               <div className="text-xs text-muted-foreground">বন্ধ করলে ফুটার থেকে এই লাইনটি লুকানো থাকবে।</div>
             </div>
             <Switch checked={footerShowCredit} onCheckedChange={setFooterShowCredit} />
