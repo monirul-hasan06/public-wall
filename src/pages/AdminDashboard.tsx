@@ -554,7 +554,15 @@ export default function AdminDashboard() {
 
           <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/30 p-3">
             <div>
-              <div className="text-sm font-medium">"Made by — Monirul Hasan Mithu" দেখান</div>
+              <div className="text-sm font-medium">Facebook কমিউনিটি লিংক দেখান</div>
+              <div className="text-xs text-muted-foreground">"Join our community on Facebook" লাইনটি দেখাবে কিনা।</div>
+            </div>
+            <Switch checked={footerShowCommunity} onCheckedChange={setFooterShowCommunity} />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background/30 p-3">
+            <div>
+              <div className="text-sm font-medium">"Made by — TechCanvix" দেখান</div>
               <div className="text-xs text-muted-foreground">বন্ধ করলে ফুটার থেকে এই লাইনটি লুকানো থাকবে।</div>
             </div>
             <Switch checked={footerShowCredit} onCheckedChange={setFooterShowCredit} />
